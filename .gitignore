@@ -1,0 +1,53 @@
+# === Python / FastAPI Backend ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+.venv/
+ENV/
+*.sqlite3
+.env
+*.log
+*.pot
+*.mo
+
+# VS Code config
+.vscode/
+
+# IDE settings
+.idea/
+
+# Byte-compiled / cache
+*.pyc
+*.pyo
+*.pyd
+
+# Dependency directories
+.Python
+.env/
+venv/
+env/
+
+# FastAPI-specific
+instance/
+*.db
+
+# === Node / React Frontend ===
+node_modules/
+build/
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.local
+
+# Optional: If using TypeScript
+*.tsbuildinfo
+
+# Log files
+*.log
+
+# Misc
+.DS_Store
+*.swp
