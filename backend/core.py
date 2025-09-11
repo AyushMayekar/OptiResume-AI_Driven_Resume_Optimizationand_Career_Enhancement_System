@@ -43,19 +43,50 @@ def parse_resume(file) -> dict:
 # Function to apply NLP on Job Description 
 def extract_job_skills(job_description: str) -> list:
     doc = nlp(job_description)
-    skills = []
+    skills = set()
     COMMON_STOPWORDS = {"software", "developer", "experience", "databases", "pipelines", "knowledge", "service", "engineer"}
+    TECH_SKILLS_DICT = {
+    "python", "django", "flask", "fastapi", "numpy", "pandas", "scipy",
+    "matplotlib", "seaborn", "tensorflow", "keras", "pytorch",
+    "jenkins", "docker", "kubernetes", "ansible", "terraform",
+    "aws", "azure", "google cloud", "gcp", "oracle cloud",
+    "postgresql", "mysql", "mongodb", "sqlite", "redis",
+    "graphql", "rest api", "soap api",
+    "git", "github", "gitlab", "bitbucket",
+    "celery", "rabbitmq",
+    "elasticsearch", "logstash", "kibana",
+    "apache", "nginx",
+    "linux", "ubuntu", "centos",
+    "microservices", "ci/cd", "tdd", "bdd",
+    "oauth", "jwt", "ssl",
+    "object-oriented programming", "oop",
+    "multithreading", "asyncio",
+    "react", "angular", "vue.js",
+    "typescript", "javascript", "java", "c++", "c#", "php", "ruby", "go"
+        }
+
+    for token in doc:
+        token_lower = token.text.lower()
+        if token_lower in TECH_SKILLS_DICT:
+            skills.add(token.text)
 
     for ent in doc.ents:
         if ent.label_ in ["ORG", "PRODUCT", "WORK_OF_ART", "TECHNOLOGY"]:  
-            skills.append(ent.text)
+            skills.add(ent.text)
 
     # Fallback: Extract all proper nouns (PROPN) and nouns (NOUN)
     if not skills:
         skills = [token.text for token in doc if token.pos_ in ("PROPN", "NOUN")]
+        skills.update(skills)
 
     skills = [skill for skill in skills if skill.lower() not in COMMON_STOPWORDS]
     return list(set(skills))
+
+# Function to calculate time saved estimate\
+def calculate_estimated_time_saved(match_info: dict) -> int:
+    estimated_time_per_skill_min = 5  
+    missing_skills_count = len(match_info.get("missing_skills", []))
+    return missing_skills_count * estimated_time_per_skill_min
 
 # Function to process resume data and job description
 def analyze_skill_match(resume_data: dict, job_skills: list) -> dict:
@@ -115,7 +146,8 @@ def format_for_ui_and_pdf(match_info: dict, recommendations: str) -> dict:
         "match_percentage": match_info["match_percentage"],
         "matched_skills": match_info["matched_skills"],
         "missing_skills": match_info["missing_skills"],
-        "recommendations": cleaned_lines
+        "recommendations": cleaned_lines,
+        "estimated_time_saved_minutes": calculate_estimated_time_saved(match_info)
     }
 
 # TBD -> Function to export pdf
