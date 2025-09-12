@@ -92,14 +92,14 @@ const AboutPage = () => {
         <div className="text-center mb-20">
           <Badge variant="secondary" className="mb-6">
             <Rocket className="h-4 w-4 mr-2" />
-            About Elevatr
+            About OptiResume
           </Badge>
           <h1 className="text-5xl md:text-6xl font-bold mb-8 hero-text">
             Transforming Careers with 
             <span className="gradient-text"> AI Innovation</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            Founded in 2023, Elevatr combines cutting-edge artificial intelligence with deep 
+            Founded in 2023, OptiResume combines cutting-edge artificial intelligence with deep 
             recruiting expertise to help job seekers optimize their resumes and accelerate their careers. 
             We've analyzed over 2 million resumes and helped 50,000+ professionals land their dream jobs.
           </p>
@@ -169,7 +169,7 @@ const AboutPage = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Our Core Values</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              The principles that guide everything we do at Elevatr
+              The principles that guide everything we do at OptiResume
             </p>
           </div>
           <div className="grid md:grid-cols-3 lg:grid-cols-3 gap-8">
@@ -287,7 +287,7 @@ const AboutPage = () => {
             <h3 className="text-3xl font-bold mb-4">Ready to Transform Your Career?</h3>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join thousands of professionals who have already optimized their resumes 
-              and accelerated their career growth with Elevatr.
+              and accelerated their career growth with OptiResume.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/upload">
