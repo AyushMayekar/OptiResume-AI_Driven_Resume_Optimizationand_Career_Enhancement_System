@@ -52,24 +52,25 @@ const LandingPage = () => {
               </Link>
               
               {/* Watch Demo button removed */}
-            </div>
+              {/* Demo Video */}
+<div className="max-w-4xl mx-auto">
+  <div className="relative rounded-2xl overflow-hidden shadow-2xl card-elevated">
+    <div className="aspect-video bg-black">
+      <video 
+        controls
+        className="w-full h-full object-cover"
+      >
+        <source src="https://res.cloudinary.com/dpuqctqfl/video/upload/v1757694690/2025-09-12_21-49-04_ivhd6c.mkv" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  </div>
+</div>
 
-            {/* Demo Video Placeholder */}
-            <div className="max-w-4xl mx-auto">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl card-elevated">
-                <div className="aspect-video bg-muted flex items-center justify-center">
-                  <div className="text-center">
-                    <Play className="h-16 w-16 text-primary mx-auto mb-4" />
-                    <p className="text-muted-foreground">Demo Video Coming Soon</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Watch how Elevatr transforms resumes in 60 seconds
-                    </p>
-                  </div>
-                </div>
-              </div>
+
             </div>
           </div>
-        </div>
+        </div>  
       </section>
 
       {/* Stats Section */}

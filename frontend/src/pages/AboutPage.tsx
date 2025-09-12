@@ -5,7 +5,6 @@ import {
   Target, 
   Users, 
   TrendingUp, 
-  Award,
   Heart,
   Shield,
   Zap,
@@ -59,29 +58,6 @@ const AboutPage = () => {
       icon: Globe,
       title: "Accessibility",
       description: "Quality career tools shouldn't be expensive. We democratize professional growth."
-    }
-  ];
-
-  const milestones = [
-    {
-      year: "2023",
-      title: "Company Founded",
-      description: "Started with a mission to democratize career advancement through AI"
-    },
-    {
-      year: "2023",
-      title: "Beta Launch",
-      description: "Launched beta with 1,000 early users and 95% satisfaction rate"
-    },
-    {
-      year: "2024",
-      title: "50K+ Users",
-      description: "Reached 50,000 users with 2M+ resumes analyzed successfully"
-    },
-    {
-      year: "2024",
-      title: "Series A Funding",
-      description: "Raised $5M to expand our AI capabilities and team"
     }
   ];
 
@@ -212,31 +188,6 @@ const AboutPage = () => {
                     {member.description}
                   </p>
                   <div className="flex-1" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Timeline */}
-        <div className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Our Journey</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Key milestones in our mission to transform career development
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {milestones.map((milestone, index) => (
-              <Card key={index} className="card-elevated border-0">
-                <CardContent className="p-6">
-                  <Badge variant="outline" className="mb-4">
-                    {milestone.year}
-                  </Badge>
-                  <h3 className="font-semibold mb-3">{milestone.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {milestone.description}
-                  </p>
                 </CardContent>
               </Card>
             ))}
