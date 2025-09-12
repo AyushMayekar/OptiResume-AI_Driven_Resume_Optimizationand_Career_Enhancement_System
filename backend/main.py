@@ -10,11 +10,30 @@ temp_storage = {}
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Or ["https://your-frontend-domain.com"] in prod
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:8080", 
+        "http://localhost:5173",
+        "https://optiresume-aidrivenresumeoptimizationandcare-production.up.railway.app",
+        "*"  # Allow all origins for development
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
+
+@app.get("/")
+async def root():
+    return {"message": "OptiResume API is running", "status": "healthy"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "message": "API is running"}
+
+@app.options("/analyze-resume")
+async def analyze_resume_options():
+    return {"message": "OK"}
 
 @app.post("/analyze-resume")
 async def analyze_resume(file: UploadFile, job_role: str = Form(...), job_description: str = Form(None)):
@@ -31,6 +50,10 @@ async def analyze_resume(file: UploadFile, job_role: str = Form(...), job_descri
     return {
         "result": formatted
     }
+
+@app.options("/export-pdf")
+async def export_pdf_options():
+    return {"message": "OK"}
 
 @app.get("/export-pdf")
 async def export_pdf():
