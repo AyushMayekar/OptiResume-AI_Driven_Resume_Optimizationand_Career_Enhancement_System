@@ -242,45 +242,7 @@ const AboutPage = () => {
             ))}
           </div>
         </div>
-
-        {/* Awards & Recognition */}
-        <Card className="card-elevated border-0 mb-20">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl mb-2 flex items-center justify-center">
-              <Award className="h-6 w-6 mr-2 text-primary" />
-              Awards & Recognition
-            </CardTitle>
-            <CardDescription>
-              Industry recognition for our innovation and impact
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-8 text-center">
-              <div className="space-y-3">
-                <Star className="h-12 w-12 text-warning mx-auto" />
-                <h4 className="font-semibold">Product Hunt #1</h4>
-                <p className="text-sm text-muted-foreground">
-                  Product of the Day for AI-powered resume optimization
-                </p>
-              </div>
-              <div className="space-y-3">
-                <TrendingUp className="h-12 w-12 text-success mx-auto" />
-                <h4 className="font-semibold">TechCrunch Startup</h4>
-                <p className="text-sm text-muted-foreground">
-                  Featured as "Startup to Watch" in career tech space
-                </p>
-              </div>
-              <div className="space-y-3">
-                <CheckCircle className="h-12 w-12 text-primary mx-auto" />
-                <h4 className="font-semibold">Y Combinator</h4>
-                <p className="text-sm text-muted-foreground">
-                  Selected for W24 batch - top 1% of applicants
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+        
         {/* CTA */}
         <Card className="card-elevated border-0 bg-gradient-to-r from-primary/5 to-secondary/5">
           <CardContent className="p-12 text-center">
