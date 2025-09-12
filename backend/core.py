@@ -1,8 +1,16 @@
 import spacy
-import os
+import os, tempfile
 from dotenv import load_dotenv 
 import google.generativeai as genai
 import re
+import fitz
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.charts.barcharts import HorizontalBarChart
+from datetime import datetime
 
 load_dotenv()
 
@@ -32,13 +40,60 @@ job_descriptions_db = {
     """,
 }
 
+TECH_SKILLS = {
+    "python","django","flask","fastapi","numpy","pandas","scipy",
+    "matplotlib","seaborn","tensorflow","pytorch","docker","kubernetes",
+    "aws","azure","gcp","postgresql","mysql","mongodb","sql",
+    "linux","git","javascript","react","java","c++","c#","php"
+}
+
 # Function to get the Job Description from DB
 def get_description_from_db(job_role: str) -> str:
     return job_descriptions_db.get(job_role, "No description available for this role.")
 
-# TBD -> Function to parse resume
+# Function to parse resume
 def parse_resume(file) -> dict:
-    pass
+    """
+    Accepts an UploadFile-like object (has .file) or a simple file path (for local tests).
+    Returns {"text": full_text, "skills": [...]} with skills lowercased from TECH_SKILLS.
+    """
+    # read bytes (supports FastAPI UploadFile or a path string)
+    raw_bytes = None
+    if hasattr(file, "file"):
+        # Uploaded file from FastAPI
+        raw_bytes = file.file.read()
+    elif isinstance(file, (bytes, bytearray)):
+        raw_bytes = file
+    else:
+        # assume file is a path
+        with open(file, "rb") as fh:
+            raw_bytes = fh.read()
+
+    text = ""
+    try:
+        with fitz.open(stream=raw_bytes, filetype="pdf") as doc:
+            for page in doc:
+                text += page.get_text("text") + "\n"
+    except Exception:
+        # fallback: try decode bytes
+        try:
+            text = raw_bytes.decode(errors="ignore")
+        except Exception:
+            text = ""
+
+    # normalize whitespace
+    text_norm = re.sub(r"\s+", " ", text)
+
+    found = set()
+    for skill in TECH_SKILLS:
+        # word boundary match, case-insensitive
+        if re.search(r"\b" + re.escape(skill) + r"\b", text_norm, flags=re.IGNORECASE):
+            found.add(skill)  # store lowercase canonical
+
+    return {
+        "text": text,
+        "skills": sorted(list(found))
+    }
 
 # Function to apply NLP on Job Description 
 def extract_job_skills(job_description: str) -> list:
@@ -82,32 +137,49 @@ def extract_job_skills(job_description: str) -> list:
     skills = [skill for skill in skills if skill.lower() not in COMMON_STOPWORDS]
     return list(set(skills))
 
-# Function to calculate time saved estimate\
+# Function to calculate time saved estimate
 def calculate_estimated_time_saved(match_info: dict) -> int:
     estimated_time_per_skill_min = 5  
     missing_skills_count = len(match_info.get("missing_skills", []))
     return missing_skills_count * estimated_time_per_skill_min
 
-# Function to process resume data and job description
+# Function to normalize skills
+def _normalize_skill(s: str) -> str:
+    s = s.lower().strip()
+    s = re.sub(r"[^\w+#.+-]", "", s)
+    return s
+
+# Function to analyze skill match
 def analyze_skill_match(resume_data: dict, job_skills: list) -> dict:
-    matched = list(set(resume_data["skills"]) & set(job_skills))
-    missing = list(set(job_skills) - set(resume_data["skills"]))
-    match_percent = 0.0
-    if len(job_skills) > 0:
-        match_percent = round(len(matched) / len(job_skills) * 100, 2) 
+    resume_skills = resume_data.get("skills") or []
+    job_skills = job_skills or []
+
+    resume_map = { _normalize_skill(s): s for s in resume_skills }
+    job_map = { _normalize_skill(s): s for s in job_skills }
+
+    matched_norm = set(resume_map.keys()) & set(job_map.keys())
+    matched = [resume_map[n] for n in matched_norm]
+
+    missing_norm = set(job_map.keys()) - matched_norm
+    missing = [job_map[n] for n in missing_norm]
+
+    match_percentage = 0.0
+    if len(job_map) > 0:
+        match_percentage = round(len(matched) / len(job_map) * 100, 2)
+
     return {
         "matched_skills": matched,
         "missing_skills": missing,
-        "match_percentage": match_percent
+        "match_percentage": match_percentage
     }
 
-# Function to get personalised recommendations from llm
+# Function to get personalised recommendations from LLM
 def generate_llm_recommendations(resume_data: dict, job_description: str, match_info: dict) -> str:
     prompt = f"""
     The user wants to apply for the following role:
     {job_description}
     
-    Their current resume skills:
+    Current resume skills:
     {', '.join(resume_data['skills'])}
     
     Matched skills:
@@ -116,25 +188,22 @@ def generate_llm_recommendations(resume_data: dict, job_description: str, match_
     Missing skills:
     {', '.join(match_info['missing_skills'])}
     
-    Please provide 3 legitimate actionable recommendations to help the user improve their resume as well as skillset, focusing on bridging the missing skills. Format the output cleanly and consistently. Do not include any markdown formatting like ** or *. Avoid using symbols like `*`, `**`, `-`, or `:` at the start or end. Be concise but clinically complete.
-
-    Expected Output format:
-    1. Add personal projects using Docker and Kubernetes to your resume.
-    2. Highlight cloud experience and certification (e.g., AWS Certified Solutions Architect).
-    3. Take an online Docker/Kubernetes course on platforms like Coursera or Udemy to improve technical expertise.
-
+    Provide 3 actionable, realistic, and market-trending recommendations to help the user improve their resume and skillset.
+    Focus on bridging missing skills with real courses, certifications, or projects that can be completed in 1-3 months.
+    Format consistently as:
+    1. Add personal project on <technology> and host it on GitHub.
+    2. Complete certification/course <name> (Coursera, Udemy, LinkedIn Learning).
+    3. Highlight <experience or skill> in resume with measurable impact.
     """
     response = model.generate_content(prompt)
-    bot_response = response.text
-    return bot_response
+    return response.text
 
-# Function to format llm raw response
+# Function to format LLM output for UI/PDF
 def format_for_ui_and_pdf(match_info: dict, recommendations: str) -> dict:
     clean_text = re.sub(r"^[\*\-\`\s]*", "", recommendations, flags=re.MULTILINE)
     clean_text = re.sub(r"\s*$", "", clean_text, flags=re.MULTILINE)
 
     lines = re.split(r'\n\d+\.\s+', clean_text)
-
     if len(lines) == 1:
         lines = [line.strip() for line in clean_text.split('\n') if line.strip()]
     else:
@@ -150,6 +219,177 @@ def format_for_ui_and_pdf(match_info: dict, recommendations: str) -> dict:
         "estimated_time_saved_minutes": calculate_estimated_time_saved(match_info)
     }
 
-# TBD -> Function to export pdf
+# Function to export PDF
 def export_to_pdf(formatted_data: dict) -> str:
-    pass
+    """
+    Generate a premium-style Resume Optimization Report for HR/Recruiters.
+    """
+    # Create temp file
+    pdf_fd, pdf_path = tempfile.mkstemp(suffix=".pdf")
+    os.close(pdf_fd)
+
+    doc = SimpleDocTemplate(
+        pdf_path,
+        pagesize=A4,
+        leftMargin=50,
+        rightMargin=50,
+        topMargin=50,
+        bottomMargin=50
+    )
+
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # ---------------- Custom Styles ---------------- #
+    title_style = ParagraphStyle(
+        "TitleStyle",
+        parent=styles["Title"],
+        fontSize=24,
+        textColor=colors.HexColor("#1a73e8"),
+        alignment=1,
+        spaceAfter=35,
+        leading=28
+    )
+
+    header_style = ParagraphStyle(
+        "HeaderStyle",
+        parent=styles["Heading2"],
+        fontSize=16,
+        textColor=colors.HexColor("#202124"),
+        spaceBefore=22,
+        spaceAfter=15,
+        leading=18
+    )
+
+    normal_style = ParagraphStyle(
+        "NormalStyle",
+        parent=styles["Normal"],
+        fontSize=11,
+        leading=16,
+        textColor=colors.HexColor("#3c4043"),
+    )
+
+    footer_style = ParagraphStyle(
+        "FooterStyle",
+        parent=styles["Normal"],
+        fontSize=10,
+        textColor=colors.HexColor("#5f6368"),
+        alignment=1
+    )
+
+    # ---------------- Cover Title ---------------- #
+    elements.append(Paragraph("Resume Optimization Report", title_style))
+    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %I:%M %p')}", normal_style))
+    elements.append(Spacer(1, 25))
+
+    # ---------------- Executive Summary ---------------- #
+    elements.append(Paragraph("Executive Summary", header_style))
+    elements.append(Paragraph(
+        f"This report evaluates the candidate’s resume against the target job role requirements. "
+        f"It highlights matched skills, missing gaps, and provides actionable recommendations "
+        f"to improve the candidate’s fit for MAANG-level roles or other high-impact companies.",
+        normal_style
+    ))
+    elements.append(Spacer(1, 20))
+
+    # ---------------- Skill Match Section with Chart ---------------- #
+    elements.append(Paragraph("Skill Match Overview", header_style))
+    elements.append(Paragraph(f"Overall Match: <b>{formatted_data['match_percentage']}%</b>", normal_style))
+    elements.append(Spacer(1, 12))
+
+    # Horizontal Progress Bar
+    d = Drawing(400, 60)
+    chart = HorizontalBarChart()
+    chart.x = 40
+    chart.y = 20
+    chart.height = 20
+    chart.width = 300
+    chart.data = [[formatted_data["match_percentage"], 100 - formatted_data["match_percentage"]]]
+    chart.bars[0].fillColor = colors.HexColor("#1a73e8")  # match
+    chart.bars[1].fillColor = colors.HexColor("#e8eaed")  # background
+    chart.bars[0].strokeColor = colors.HexColor("#1a73e8")
+    chart.bars[1].strokeColor = colors.HexColor("#dadce0")
+    chart.valueAxis.valueMin = 0
+    chart.valueAxis.valueMax = 100
+    chart.valueAxis.visible = False
+    chart.categoryAxis.visible = False
+    d.add(chart)
+    elements.append(d)
+    elements.append(Spacer(1, 25))
+
+    # ---------------- Skills Table ---------------- #
+    elements.append(Paragraph("Skills Breakdown", header_style))
+    matched = ", ".join(formatted_data["matched_skills"]) if formatted_data["matched_skills"] else "None"
+    missing = ", ".join(formatted_data["missing_skills"]) if formatted_data["missing_skills"] else "None"
+
+    data = [
+        ["Matched Skills", matched],
+        ["Missing Skills", missing],
+    ]
+    table = Table(data, colWidths=[150, 320])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#e6f4ea")),
+        ("BACKGROUND", (0, 1), (0, 1), colors.HexColor("#fce8e6")),
+        ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#202124")),
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#dadce0")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.6, colors.HexColor("#dadce0")),
+    ]))
+    elements.append(table)
+    elements.append(Spacer(1, 30))
+
+    # ---------------- Recommendations ---------------- #
+    elements.append(Paragraph("Actionable Recommendations", header_style))
+
+    for i, rec in enumerate(formatted_data["recommendations"], start=1):
+        # Categorize recommendation
+        category = "General"
+        rec_lower = rec.lower()
+        color = colors.HexColor("#202124")  # default dark grey
+
+        if any(x in rec_lower for x in ["course","certification","certificate","exam"]):
+            category = "Certification"
+            color = colors.HexColor("#34a853")  # green
+        elif any(x in rec_lower for x in ["project","github","portfolio"]):
+            category = "Project"
+            color = colors.HexColor("#1a73e8")  # blue
+        elif any(x in rec_lower for x in ["highlight","resume","experience","skills"]):
+            category = "Skill"
+            color = colors.HexColor("#fbbc05")  # orange
+
+        # Use bullet (•) for unordered list or number for ordered list
+        bullet = f"{i}."  # ordered
+        # bullet = "•"  # uncomment for unordered
+
+        # --- ADD THIS LINE: Markdown bold to ReportLab bold ---
+        rec = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", rec)
+
+        # Combine bullet + colored category + recommendation text
+        para_text = f"{bullet} <b><font color='{color}'>{category}:</font></b> {rec}"
+        
+        # Add to elements
+        elements.append(Paragraph(para_text, normal_style))
+        elements.append(Spacer(1, 8))  # smaller spacing between items
+        # After the recommendations loop
+    estimated_time = formatted_data.get("estimated_time_saved_minutes", 0)
+    elements.append(
+        Paragraph(
+            f"<font color='#202124'>&#9632;</font> <b>Estimated Time Saved: {estimated_time} minutes</b>", 
+            normal_style
+        )
+    )
+    elements.append(Spacer(1, 16))  # Optional extra space at the end
+
+    # ---------------- Footer ---------------- #
+    elements.append(PageBreak())
+    elements.append(Spacer(1, 250))
+    footer = Paragraph(
+        "Generated by <b>OptiResume AI</b> – Empowering Smarter Career Growth", 
+        footer_style
+    )
+    elements.append(footer)
+
+    doc.build(elements)
+    return pdf_path
