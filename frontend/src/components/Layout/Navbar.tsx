@@ -33,7 +33,7 @@ const Navbar = () => {
             <div className="p-2 bg-primary rounded-lg group-hover:scale-110 transition-transform duration-300">
               <Zap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="hero-text text-xl font-bold">Elevatr</span>
+            <span className="hero-text text-xl font-bold">OptiResume</span>
           </Link>
 
           {/* Desktop Navigation */}
