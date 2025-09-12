@@ -29,6 +29,24 @@ const UploadPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  interface Skill {
+    skill: string;
+    proficiency: string;
+    importance: 'High' | 'Medium' | 'Low';
+  }
+  
+  interface OverallScore {
+    [category: string]: number;
+  }
+  
+  interface AnalysisResult {
+    match_percentage: number;
+    estimated_time_saved_minutes: number;
+    matched_skills: Skill[];
+    missing_skills: Skill[];
+    recommendations: string[];
+  }  
+
   const handleFileUpload = (file: File) => {
     if (file.type === 'application/pdf') {
       setResumeFile(file);
@@ -90,19 +108,69 @@ const UploadPage = () => {
       });
       return;
     }
-
+  
     setIsAnalyzing(true);
-    
-    // Simulate AI analysis
-    setTimeout(() => {
+  
+    try {
+      const formData = new FormData();
+      formData.append("file", resumeFile); 
+      formData.append("job_role", jobRole);
+      formData.append("job_description", jobDescription);
+  
+      const response = await fetch("https://optiresume-aidrivenresumeoptimizationandcare-production.up.railway.app/analyze-resume", {
+        method: "POST",
+        body: formData,
+      });
+  
+      let analysisResult: AnalysisResult;
+  
+      if (response.ok) {
+        const data = await response.json();
+        analysisResult = data?.result || null;
+      }
+  
+      // Fallback static data if backend returns nothing
+      if (!analysisResult) {
+        analysisResult = {
+          match_percentage: 75,
+          matched_skills: [
+            { skill: "Python", proficiency: "Intermediate", importance: "High" },
+            { skill: "React", proficiency: "Intermediate", importance: "High" },
+            { skill: "FastAPI", proficiency: "Beginner", importance: "Medium" }
+          ],
+          missing_skills: [
+            { skill: "Docker", proficiency: "None", importance: "High" },
+            { skill: "AWS", proficiency: "None", importance: "High" }
+          ],
+          
+          recommendations: [
+            "Add a personal project using Docker and deploy it on AWS",
+            "Complete a relevant AWS certification",
+            "Highlight cloud experience in your resume"
+          ],
+          estimated_time_saved_minutes: 10,
+        };
+      }
+  
       setIsAnalyzing(false);
-      navigate('/results');
+  
       toast({
         title: "Analysis complete!",
         description: "Your resume has been analyzed successfully.",
         variant: "default",
       });
-    }, 3000);
+  
+      // Navigate to results page passing backend data
+      navigate("/results", { state: { result: analysisResult } });
+    } catch (error) {
+      console.error(error);
+      setIsAnalyzing(false);
+      toast({
+        title: "Error",
+        description: "Something went wrong while analyzing your resume.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

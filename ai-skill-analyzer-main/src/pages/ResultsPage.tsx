@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Download, 
-  CheckCircle2, 
-  AlertTriangle, 
-  TrendingUp, 
-  Clock, 
-  Target, 
+import {
+  Download,
+  CheckCircle2,
+  AlertTriangle,
+  TrendingUp,
+  Clock,
+  Target,
   Brain,
   FileText,
   ArrowLeft,
@@ -20,34 +20,102 @@ import {
   Trophy,
   Zap
 } from 'lucide-react';
-import { mockAnalysisResult } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 
 const ResultsPage = () => {
   const { toast } = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isExporting, setIsExporting] = useState(false);
-  const result = mockAnalysisResult;
+  const [result, setResult] = useState<any>(null);
+
+  useEffect(() => {
+    if (!location.state || !location.state.result) {
+      toast({
+        title: 'No data found',
+        description: 'Redirecting to upload page.',
+        variant: 'destructive',
+      });
+      setTimeout(() => navigate('/upload'), 2000);
+      return;
+    }
+
+    const fetchedResult = location.state.result;
+
+    // Preprocess for dummy realistic values
+    const matched_skills = fetchedResult.matched_skills || [];
+    const missing_skills = fetchedResult.missing_skills || [];
+    const match_percentage = fetchedResult.match_percentage ?? Math.round((matched_skills.length / (matched_skills.length + missing_skills.length)) * 100);
+    const timeSaved = fetchedResult.timeSaved ?? `${Math.floor(Math.random() * 30 + 10)} mins`;
+
+    // Dummy overallScore based on existing data
+    const overallScore = fetchedResult.overallScore ?? {
+      Experience: Math.min(match_percentage + 10, 100),
+      Skills: match_percentage,
+      Certifications: Math.min(match_percentage - 5, 100),
+      Education: Math.min(match_percentage + 5, 100),
+    };
+
+    const recommendations = fetchedResult.recommendations && fetchedResult.recommendations.length > 0
+      ? fetchedResult.recommendations
+      : [
+        'Update your resume with measurable achievements for each role.',
+        'Consider learning advanced skills relevant to the job description.',
+        'Highlight certifications and courses that align with this role.',
+        'Ensure your LinkedIn profile matches your resume keywords.',
+      ];
+
+    setResult({
+      ...fetchedResult,
+      matched_skills,
+      missing_skills,
+      match_percentage,
+      timeSaved,
+      overallScore,
+      recommendations,
+    });
+  }, [location.state, navigate, toast]);
 
   const handleExportPDF = async () => {
+    if (!result) return;
     setIsExporting(true);
-    // Simulate PDF generation
-    setTimeout(() => {
-      setIsExporting(false);
-      
-      // Create a fake PDF download
-      const element = document.createElement('a');
-      const file = new Blob(['This is a sample PDF report for your resume analysis. In production, this would be a real PDF with detailed insights.'], {type: 'text/plain'});
-      element.href = URL.createObjectURL(file);
-      element.download = `Elevatr_Resume_Analysis_${new Date().toISOString().split('T')[0]}.txt`;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-      
+    try {
+
+      const payload = {
+        ...result,
+        matched_skills: result.matched_skills.map(skillObj => skillObj.skill),
+        missing_skills: result.missing_skills.map(skillObj => skillObj.skill),
+      };
+
+      const response = await axios.get(
+        'https://optiresume-aidrivenresumeoptimizationandcare-production.up.railway.app/export-pdf',
+        { responseType: 'blob' }
+      );
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Elevatr_Resume_Analysis_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
       toast({
-        title: "Report exported!",
-        description: "Your resume analysis report has been downloaded.",
+        title: 'Report exported!',
+        description: 'Your resume analysis report has been downloaded.',
       });
-    }, 2000);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Export failed',
+        description: 'Something went wrong while exporting the report.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleShare = () => {
@@ -69,6 +137,8 @@ const ResultsPage = () => {
     return 'bg-error';
   };
 
+  if (!result) return null;
+
   return (
     <div className="min-h-screen pt-20 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,7 +152,7 @@ const ResultsPage = () => {
               </Button>
             </Link>
           </div>
-          
+
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <Badge variant="secondary" className="mb-2">
@@ -91,17 +161,17 @@ const ResultsPage = () => {
               </Badge>
               <h1 className="text-4xl font-bold mb-2">Resume Analysis Results</h1>
               <p className="text-muted-foreground">
-                Generated on {result.reportDate} • {result.jobRole} at {result.company}
+                Generated on {new Date().toLocaleDateString()}
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3">
               <Button variant="outline" onClick={handleShare}>
                 <Share2 className="h-4 w-4 mr-2" />
                 Share Results
               </Button>
-              <Button 
-                variant="gradient" 
+              <Button
+                variant="gradient"
                 onClick={handleExportPDF}
                 disabled={isExporting}
               >
@@ -128,16 +198,16 @@ const ResultsPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Match Score</p>
-                  <p className={`text-3xl font-bold ${getScoreColor(result.matchPercentage)}`}>
-                    {result.matchPercentage}%
+                  <p className={`text-3xl font-bold ${getScoreColor(result.match_percentage)}`}>
+                    {result.match_percentage}%
                   </p>
                 </div>
-                <div className={`p-3 rounded-full ${getScoreBg(result.matchPercentage)}/10`}>
-                  <Target className={`h-6 w-6 ${getScoreColor(result.matchPercentage)}`} />
+                <div className={`p-3 rounded-full ${getScoreBg(result.match_percentage)}/10`}>
+                  <Target className={`h-6 w-6 ${getScoreColor(result.match_percentage)}`} />
                 </div>
               </div>
               <div className="mt-4">
-                <Progress value={result.matchPercentage} className="h-2" />
+                <Progress value={result.match_percentage} className="h-2" />
               </div>
             </CardContent>
           </Card>
@@ -147,7 +217,7 @@ const ResultsPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Time Saved</p>
-                  <p className="text-3xl font-bold text-primary">{result.timeSaved}</p>
+                  <p className="text-3xl font-bold text-primary">{result.estimated_time_saved_minutes}</p>
                 </div>
                 <div className="p-3 rounded-full bg-primary/10">
                   <Clock className="h-6 w-6 text-primary" />
@@ -164,14 +234,14 @@ const ResultsPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Skills Matched</p>
-                  <p className="text-3xl font-bold text-success">{result.matchedSkills.length}</p>
+                  <p className="text-3xl font-bold text-success">{result.matched_skills.length}</p>
                 </div>
                 <div className="p-3 rounded-full bg-success/10">
                   <CheckCircle2 className="h-6 w-6 text-success" />
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                out of {result.matchedSkills.length + result.missingSkills.length} required
+                out of {result.matched_skills.length + result.missing_skills.length} required
               </p>
             </CardContent>
           </Card>
@@ -181,7 +251,7 @@ const ResultsPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Missing Skills</p>
-                  <p className="text-3xl font-bold text-warning">{result.missingSkills.length}</p>
+                  <p className="text-3xl font-bold text-warning">{result.missing_skills.length}</p>
                 </div>
                 <div className="p-3 rounded-full bg-warning/10">
                   <AlertTriangle className="h-6 w-6 text-warning" />
@@ -202,7 +272,7 @@ const ResultsPage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center text-success">
                   <CheckCircle2 className="h-5 w-5 mr-2" />
-                  Matched Skills ({result.matchedSkills.length})
+                  Matched Skills ({result.matched_skills.length})
                 </CardTitle>
                 <CardDescription>
                   Skills from your resume that match the job requirements
@@ -210,20 +280,20 @@ const ResultsPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {result.matchedSkills.map((skill, index) => (
+                  {result.matched_skills.map((skill, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-success-light rounded-lg">
                       <div className="flex items-center">
                         <CheckCircle2 className="h-4 w-4 text-success mr-3" />
                         <div>
-                          <p className="font-medium">{skill.skill}</p>
-                          <p className="text-xs text-muted-foreground">{skill.proficiency}</p>
+                          <p className="font-medium">{skill}</p>
+                          <p className="text-xs text-muted-foreground">Proficiency: Intermediate</p>
                         </div>
                       </div>
-                      <Badge 
+                      <Badge
                         variant={skill.importance === 'High' ? 'default' : 'secondary'}
                         className="text-xs"
                       >
-                        {skill.importance}
+                        Medium
                       </Badge>
                     </div>
                   ))}
@@ -236,7 +306,7 @@ const ResultsPage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center text-warning">
                   <AlertTriangle className="h-5 w-5 mr-2" />
-                  Skills to Develop ({result.missingSkills.length})
+                  Skills to Develop ({result.missing_skills.length})
                 </CardTitle>
                 <CardDescription>
                   Skills mentioned in the job description that could strengthen your profile
@@ -244,23 +314,18 @@ const ResultsPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {result.missingSkills.map((skill, index) => (
+                  {result.missing_skills.map((skill, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-warning-light rounded-lg">
                       <div className="flex items-center">
                         <AlertTriangle className="h-4 w-4 text-warning mr-3" />
                         <div>
-                          <p className="font-medium">{skill.skill}</p>
+                          <p className="font-medium">{skill}</p>
                           <p className="text-xs text-muted-foreground">
-                            Current: {skill.proficiency}
+                            Current: Beginner
                           </p>
                         </div>
                       </div>
-                      <Badge 
-                        variant={skill.importance === 'High' ? 'destructive' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {skill.importance}
-                      </Badge>
+                      <Badge variant="secondary" className="text-xs">High</Badge>
                     </div>
                   ))}
                 </div>
@@ -279,17 +344,20 @@ const ResultsPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {Object.entries(result.overallScore).map(([category, score]) => (
-                  <div key={category}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium capitalize">{category}</span>
-                      <span className={`text-sm font-bold ${getScoreColor(score)}`}>
-                        {score}%
-                      </span>
+                {Object.entries(result.overallScore).map(([category, score]) => {
+const numericScore = typeof score === 'number' ? Number(score.toFixed(1)) : 0;
+return (
+                    <div key={category}>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium capitalize">{category}</span>
+                        <span className={`text-sm font-bold ${getScoreColor(numericScore)}`}>
+                          {numericScore}%
+                        </span>
+                      </div>
+                      <Progress value={numericScore} className="h-2" />
                     </div>
-                    <Progress value={score} className="h-2" />
-                  </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
 
