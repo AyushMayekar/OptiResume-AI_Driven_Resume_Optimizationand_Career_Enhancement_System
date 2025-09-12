@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Zap } from 'lucide-react';
+import { Menu, X, Zap, TrendingUp } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +23,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             <div className="p-2 bg-primary rounded-lg group-hover:scale-110 transition-transform duration-300">
-              <Zap className="h-5 w-5 text-primary-foreground" />
+              <TrendingUp className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="hero-text text-xl font-bold">Elevatr</span>
           </Link>

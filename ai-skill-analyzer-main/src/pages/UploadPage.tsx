@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { jobDescriptionSample } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
+import { analyzeResume } from '@/lib/api';
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -112,25 +113,18 @@ const UploadPage = () => {
     setIsAnalyzing(true);
   
     try {
-      const formData = new FormData();
-      formData.append("file", resumeFile); 
-      formData.append("job_role", jobRole);
-      formData.append("job_description", jobDescription);
-  
-      const response = await fetch("https://optiresume-aidrivenresumeoptimizationandcare-production.up.railway.app/analyze-resume", {
-        method: "POST",
-        body: formData,
+      const response = await analyzeResume({
+        file: resumeFile,
+        jobRole: jobRole,
+        jobDescription: jobDescription
       });
   
       let analysisResult: AnalysisResult;
   
-      if (response.ok) {
-        const data = await response.json();
-        analysisResult = data?.result || null;
-      }
-  
-      // Fallback static data if backend returns nothing
-      if (!analysisResult) {
+      if (response && response.result) {
+        analysisResult = response.result;
+      } else {
+        // Fallback static data if backend returns nothing
         analysisResult = {
           match_percentage: 75,
           matched_skills: [
@@ -251,6 +245,8 @@ const UploadPage = () => {
                         onChange={handleFileInputChange}
                         className="hidden"
                         id="resume-upload"
+                        aria-label="Upload resume PDF"
+                        title="Upload resume PDF"
                       />
                       <Label htmlFor="resume-upload" className="cursor-pointer">
                         <Button variant="outline" asChild>

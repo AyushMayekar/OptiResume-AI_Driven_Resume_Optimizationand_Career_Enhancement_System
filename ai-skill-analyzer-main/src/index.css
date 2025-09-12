@@ -172,4 +172,28 @@
     background: var(--gradient-primary);
     transition: width 1s ease-in-out;
   }
+
+  /* Marquee Animation */
+  .marquee {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .marquee__track {
+    display: inline-flex;
+    animation: marquee 30s linear infinite;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .marquee:hover .marquee__track {
+    animation-play-state: paused;
+  }
 }

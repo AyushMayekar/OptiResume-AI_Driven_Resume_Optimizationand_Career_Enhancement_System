@@ -5,7 +5,6 @@ import {
   Target, 
   Users, 
   TrendingUp, 
-  Award,
   Heart,
   Shield,
   Zap,
@@ -20,29 +19,23 @@ import { Link } from 'react-router-dom';
 const AboutPage = () => {
   const teamMembers = [
     {
-      name: "Sarah Chen",
+      name: "Ayush Mayekar",
       role: "CEO & Co-Founder",
-      description: "Former Tech Recruiter with 10+ years at Google and Microsoft",
-      image: "/placeholder.svg"
+      description: "AI/ML Expert, Bachelor of Engineering from VCET",
+      image: "/am.jpg"
     },
     {
-      name: "Marcus Rodriguez",
+      name: "Aaryan Gole",
       role: "CTO & Co-Founder", 
-      description: "AI/ML Expert, PhD from Stanford, ex-OpenAI Research Scientist",
-      image: "/placeholder.svg"
+      description: "AI/ML Expert, Bachelor of Engineering from VCET",
+      image: "/acg.jpg"
     },
     {
-      name: "Emily Johnson",
-      role: "Head of Product",
-      description: "Product Leader from LinkedIn, expert in career development tools",
-      image: "/placeholder.svg"
-    },
-    {
-      name: "David Park",
-      role: "Lead AI Engineer",
-      description: "NLP Specialist, former Amazon Alexa team, published researcher",
-      image: "/placeholder.svg"
-    }
+      name: "Dnyanesh Panchal",
+      role: "CMO & Co-Founder",
+      description: "AI/ML Expert, Bachelor of Engineering from VCET",
+      image: "/dp.jpg"
+    }    
   ];
 
   const values = [
@@ -68,29 +61,6 @@ const AboutPage = () => {
     }
   ];
 
-  const milestones = [
-    {
-      year: "2023",
-      title: "Company Founded",
-      description: "Started with a mission to democratize career advancement through AI"
-    },
-    {
-      year: "2023",
-      title: "Beta Launch",
-      description: "Launched beta with 1,000 early users and 95% satisfaction rate"
-    },
-    {
-      year: "2024",
-      title: "50K+ Users",
-      description: "Reached 50,000 users with 2M+ resumes analyzed successfully"
-    },
-    {
-      year: "2024",
-      title: "Series A Funding",
-      description: "Raised $5M to expand our AI capabilities and team"
-    }
-  ];
-
   return (
     <div className="min-h-screen pt-20 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -98,7 +68,7 @@ const AboutPage = () => {
         <div className="text-center mb-20">
           <Badge variant="secondary" className="mb-6">
             <Rocket className="h-4 w-4 mr-2" />
-            About Elevatr
+            About Elevatr.
           </Badge>
           <h1 className="text-5xl md:text-6xl font-bold mb-8 hero-text">
             Transforming Careers with 
@@ -175,10 +145,10 @@ const AboutPage = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Our Core Values</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              The principles that guide everything we do at Elevatr
+              The principles that guide everything we do at OptiResume
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 lg:grid-cols-3 gap-8">
             {values.map((value, index) => (
               <Card key={index} className="card-elevated border-0 text-center h-full">
                 <CardContent className="p-8">
@@ -203,94 +173,34 @@ const AboutPage = () => {
               Industry experts and AI innovators working together to transform careers
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
             {teamMembers.map((member, index) => (
-              <Card key={index} className="card-elevated border-0 text-center">
-                <CardContent className="p-8">
-                  <div className="w-24 h-24 bg-muted rounded-full mx-auto mb-6 flex items-center justify-center">
-                    <Users className="h-12 w-12 text-muted-foreground" />
-                  </div>
+              <Card key={index} className="card-elevated border-0 text-center h-full">
+                <CardContent className="p-8 flex flex-col items-center h-full">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-24 h-24 rounded-full object-cover mx-auto mb-6 ring-2 ring-primary/20 shadow-sm"
+                  />
                   <h3 className="font-semibold mb-1">{member.name}</h3>
                   <p className="text-sm text-primary font-medium mb-3">{member.role}</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     {member.description}
                   </p>
+                  <div className="flex-1" />
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
-
-        {/* Timeline */}
-        <div className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Our Journey</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Key milestones in our mission to transform career development
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {milestones.map((milestone, index) => (
-              <Card key={index} className="card-elevated border-0">
-                <CardContent className="p-6">
-                  <Badge variant="outline" className="mb-4">
-                    {milestone.year}
-                  </Badge>
-                  <h3 className="font-semibold mb-3">{milestone.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {milestone.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Awards & Recognition */}
-        <Card className="card-elevated border-0 mb-20">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl mb-2 flex items-center justify-center">
-              <Award className="h-6 w-6 mr-2 text-primary" />
-              Awards & Recognition
-            </CardTitle>
-            <CardDescription>
-              Industry recognition for our innovation and impact
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-8 text-center">
-              <div className="space-y-3">
-                <Star className="h-12 w-12 text-warning mx-auto" />
-                <h4 className="font-semibold">Product Hunt #1</h4>
-                <p className="text-sm text-muted-foreground">
-                  Product of the Day for AI-powered resume optimization
-                </p>
-              </div>
-              <div className="space-y-3">
-                <TrendingUp className="h-12 w-12 text-success mx-auto" />
-                <h4 className="font-semibold">TechCrunch Startup</h4>
-                <p className="text-sm text-muted-foreground">
-                  Featured as "Startup to Watch" in career tech space
-                </p>
-              </div>
-              <div className="space-y-3">
-                <CheckCircle className="h-12 w-12 text-primary mx-auto" />
-                <h4 className="font-semibold">Y Combinator</h4>
-                <p className="text-sm text-muted-foreground">
-                  Selected for W24 batch - top 1% of applicants
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+        
         {/* CTA */}
         <Card className="card-elevated border-0 bg-gradient-to-r from-primary/5 to-secondary/5">
           <CardContent className="p-12 text-center">
             <h3 className="text-3xl font-bold mb-4">Ready to Transform Your Career?</h3>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join thousands of professionals who have already optimized their resumes 
-              and accelerated their career growth with Elevatr.
+              and accelerated their career growth with OptiResume.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/upload">

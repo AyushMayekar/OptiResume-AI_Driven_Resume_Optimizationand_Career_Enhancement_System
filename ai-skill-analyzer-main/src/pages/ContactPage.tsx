@@ -1,40 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
   Mail, 
   Phone, 
   MapPin, 
   Clock,
-  Send,
   MessageSquare,
   Users,
   Headphones
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
 
 const ContactPage = () => {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      toast({
-        title: "Message sent successfully!",
-        description: "We'll get back to you within 24 hours.",
-      });
-    }, 2000);
-  };
-
   return (
     <div className="min-h-screen pt-20 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -53,174 +30,84 @@ const ContactPage = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-12">
-          {/* Contact Information */}
-          <div className="space-y-8">
-            <Card className="card-elevated border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Mail className="h-5 w-5 mr-2 text-primary" />
-                  Email Us
-                </CardTitle>
-                <CardDescription>
-                  Get in touch via email for detailed inquiries
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="font-medium">support@elevatr.ai</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  We typically respond within 2-4 hours
-                </p>
-              </CardContent>
-            </Card>
+        {/* Contact Information */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+          <Card className="card-elevated border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Mail className="h-5 w-5 mr-2 text-primary" />
+                Email Us
+              </CardTitle>
+              <CardDescription>
+                Get in touch via email for detailed inquiries
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="font-medium">support@elevatr.ai</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                We typically respond within 2-4 hours
+              </p>
+            </CardContent>
+          </Card>
 
-            <Card className="card-elevated border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Phone className="h-5 w-5 mr-2 text-primary" />
-                  Phone Support
-                </CardTitle>
-                <CardDescription>
-                  Speak directly with our career experts
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="font-medium">+1 (555) 123-4567</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Monday - Friday, 9 AM - 6 PM PST
-                </p>
-              </CardContent>
-            </Card>
+          <Card className="card-elevated border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Phone className="h-5 w-5 mr-2 text-primary" />
+                Phone Support
+              </CardTitle>
+              <CardDescription>
+                Speak directly with our career experts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="font-medium">+91 93097 44137</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Monday - Friday, 9 AM - 6 PM IST
+              </p>
+            </CardContent>
+          </Card>
 
-            <Card className="card-elevated border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <MapPin className="h-5 w-5 mr-2 text-primary" />
-                  Office Location
-                </CardTitle>
-                <CardDescription>
-                  Visit us at our headquarters
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="font-medium">123 Innovation Drive</p>
-                <p className="text-sm text-muted-foreground">
-                  San Francisco, CA 94105
-                </p>
-              </CardContent>
-            </Card>
+          <Card className="card-elevated border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <MapPin className="h-5 w-5 mr-2 text-primary" />
+                Office Location
+              </CardTitle>
+              <CardDescription>
+                Visit us at our headquarters
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="font-medium">K.T. Marg, IIIT Vasai</p>
+              <p className="text-sm text-muted-foreground">
+                Vasai (W) — 401202, Maharashtra
+              </p>
+            </CardContent>
+          </Card>
 
-            <Card className="card-elevated border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-primary" />
-                  Business Hours
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Monday - Friday</span>
-                  <span className="font-medium">9:00 AM - 6:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Saturday</span>
-                  <span className="font-medium">10:00 AM - 4:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sunday</span>
-                  <span className="text-muted-foreground">Closed</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Contact Form */}
-          <div className="lg:col-span-2">
-            <Card className="card-elevated border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl">Send us a Message</CardTitle>
-                <CardDescription>
-                  Fill out the form below and we'll get back to you as soon as possible.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        placeholder="John"
-                        required
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        placeholder="Doe"
-                        required
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="john@example.com"
-                      required
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input
-                      id="subject"
-                      placeholder="How can we help you?"
-                      required
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      placeholder="Tell us more about your inquiry..."
-                      rows={6}
-                      required
-                      className="mt-1 resize-none"
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    variant="gradient"
-                    size="lg"
-                    disabled={isSubmitting}
-                    className="w-full"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="card-elevated border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Clock className="h-5 w-5 mr-2 text-primary" />
+                Business Hours
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Mon - Fri</span>
+                <span className="font-medium">9:00 AM - 6:00 PM</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Saturday</span>
+                <span className="font-medium">10:00 AM - 4:00 PM</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Sunday</span>
+                <span className="text-muted-foreground">Closed</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* FAQ Section */}

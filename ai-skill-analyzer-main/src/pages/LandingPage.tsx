@@ -25,10 +25,10 @@ const LandingPage = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-background" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <Badge variant="secondary" className="mb-6 px-4 py-2">
-              <Zap className="h-4 w-4 mr-2" />
-              AI-Powered Resume Optimization
-            </Badge>
+            
+            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-blue-700 ring-1 ring-blue-600/20 mb-4">
+            Trusted by hiring teams and top candidates
+          </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
               Land Your Dream Job with{' '}
@@ -42,7 +42,7 @@ const LandingPage = () => {
               that increase your interview success rate by 300%.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link to="/upload">
                 <Button variant="gradient" size="lg" className="w-full sm:w-auto">
                   <Target className="h-5 w-5 mr-2" />
@@ -50,29 +50,19 @@ const LandingPage = () => {
                   <ArrowRight className="h-5 w-5 ml-2" />
                 </Button>
               </Link>
-              
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="w-full sm:w-auto group"
-                onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
-              >
-                <Play className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                Watch Demo
-              </Button>
             </div>
 
-            {/* Demo Video Placeholder */}
-            <div className="max-w-4xl mx-auto">
+            {/* Demo Video */}
+            <div className="max-w-4xl mx-auto mb-12">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl card-elevated">
-                <div className="aspect-video bg-muted flex items-center justify-center">
-                  <div className="text-center">
-                    <Play className="h-16 w-16 text-primary mx-auto mb-4" />
-                    <p className="text-muted-foreground">Demo Video Coming Soon</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Watch how Elevatr transforms resumes in 60 seconds
-                    </p>
-                  </div>
+                <div className="aspect-video bg-black">
+                  <video 
+                    controls
+                    className="w-full h-full object-cover"
+                  >
+                    <source src="https://res.cloudinary.com/dpuqctqfl/video/upload/v1757694690/2025-09-12_21-49-04_ivhd6c.mkv" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
               </div>
             </div>
@@ -96,6 +86,30 @@ const LandingPage = () => {
                 </div>
                 <div className="text-3xl font-bold text-foreground mb-2">{stat.value}</div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Scrolling bar */}
+      <section className="py-6">
+        <div className="marquee bg-white/80 backdrop-blur border-y border-border select-none">
+          <div className="marquee__track">
+            {[
+              "Precision Matching","ATS Friendly","Recruiter-Ready","Executive Reports","LLM-Powered","Actionable Insights","Privacy First"
+            ].map((label, i) => (
+              <div key={`m1-${i}`} className="flex items-center px-8 py-3">
+                <span className="text-slate-700 text-sm font-semibold uppercase tracking-wider whitespace-nowrap">{label}</span>
+                <span className="mx-8 h-1 w-1 rounded-full bg-slate-300 inline-block" />
+              </div>
+            ))}
+            {[
+              "Precision Matching","ATS Friendly","Recruiter-Ready","Executive Reports","LLM-Powered","Actionable Insights","Privacy First"
+            ].map((label, i) => (
+              <div key={`m2-${i}`} className="flex items-center px-8 py-3">
+                <span className="text-slate-700 text-sm font-semibold uppercase tracking-wider whitespace-nowrap">{label}</span>
+                <span className="mx-8 h-1 w-1 rounded-full bg-slate-300 inline-block" />
               </div>
             ))}
           </div>
