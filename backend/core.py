@@ -4,15 +4,45 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import re
 import fitz
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
-from reportlab.graphics.shapes import Drawing
-from reportlab.graphics.charts.barcharts import HorizontalBarChart
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import Paragraph
+from reportlab.graphics.shapes import Drawing, Rect, String
 from datetime import datetime
 
 load_dotenv()
+
+BASE_FONT_PATH = os.path.join(os.getcwd(), 'assets', 'fonts')
+
+# Register essential fonts
+pdfmetrics.registerFont(TTFont('Roboto-Regular', os.path.join(BASE_FONT_PATH, 'Roboto-Regular.ttf')))
+pdfmetrics.registerFont(TTFont('Roboto-Bold', os.path.join(BASE_FONT_PATH, 'Roboto-Bold.ttf')))
+pdfmetrics.registerFont(TTFont('Roboto-Italic', os.path.join(BASE_FONT_PATH, 'Roboto-Italic.ttf')))
+pdfmetrics.registerFont(TTFont('Roboto-BoldItalic', os.path.join(BASE_FONT_PATH, 'Roboto-BoldItalic.ttf')))
+
+PDF_THEME = {
+    "font_name": "Roboto",
+    "primary_color": colors.HexColor("#1a73e8"),
+    "secondary_color": colors.HexColor("#34a853"),
+    "warning_color": colors.HexColor("#fbbc05"),
+    "neutral_color": colors.HexColor("#202124"),
+    "background_matched": colors.HexColor("#e6f4ea"),
+    "background_missing": colors.HexColor("#fce8e6"),
+    "font_size_title": 24,
+    "font_size_header": 14,
+    "font_size_normal": 11,
+    "line_spacing": 14
+}
+
+CATEGORY_RULES = {
+    "Certification": ["course", "certification", "certificate", "exam"],
+    "Project": ["project", "github", "portfolio"],
+    "Skill": ["highlight", "resume", "experience", "skills"],
+}
 
 # Loading NLP English Model
 nlp = spacy.load("en_core_web_md")
@@ -41,10 +71,16 @@ job_descriptions_db = {
 }
 
 TECH_SKILLS = {
-    "python","django","flask","fastapi","numpy","pandas","scipy",
-    "matplotlib","seaborn","tensorflow","pytorch","docker","kubernetes",
-    "aws","azure","gcp","postgresql","mysql","mongodb","sql",
-    "linux","git","javascript","react","java","c++","c#","php"
+    "python", "django", "flask", "fastapi", "numpy", "pandas", "scipy",
+    "matplotlib", "seaborn", "plotly", "tensorflow", "pytorch", "scikit-learn",
+    "docker", "kubernetes", "aws", "azure", "gcp", "postgresql", "mysql",
+    "mongodb", "sql", "linux", "git", "github", "gitlab", "javascript",
+    "typescript", "react", "vue", "angular", "nodejs", "express", "java",
+    "spring", "c++", "c#", "php", "ruby", "rails", "swift", "objective-c",
+    "go", "rust", "graphql", "rest api", "soap", "redis", "elasticsearch",
+    "apache kafka", "rabbitmq", "celery", "jenkins", "circleci", "travisci",
+    "terraform", "ansible", "helm", "prometheus", "grafana", "hadoop", "spark",
+    "apache airflow", "bigquery", "cloud functions", "lambda", "docker-compose"
 }
 
 # Function to get the Job Description from DB
@@ -188,27 +224,20 @@ def generate_llm_recommendations(resume_data: dict, job_description: str, match_
     Missing skills:
     {', '.join(match_info['missing_skills'])}
     
-    Provide 3 actionable, realistic, and market-trending recommendations to help the user improve their resume and skillset.
-    Focus on bridging missing skills with real courses, certifications, or projects that can be completed in 1-3 months.
-    Format consistently as:
-    1. Add personal project on <technology> and host it on GitHub.
-    2. Complete certification/course <name> (Coursera, Udemy, LinkedIn Learning).
-    3. Highlight <experience or skill> in resume with measurable impact.
+    Generate three practical and market-relevant recommendations to improve the user’s resume and skillset. Focus on bridging missing skills with real-world actions that can be completed within one to three months. Each recommendation should be personalized, realistic, and actionable, including projects, certifications, or ways to highlight experience. Format the recommendations clearly, with each on a separate line, avoiding symbols, extra spaces, or numbering. Use natural, human-friendly language that feels tailored to the individual.
+
+    Example style of output:
+    1. Add a personal project using [technology] and publish it on GitHub
+    2. Complete the [course or certification name] from platforms like Coursera, Udemy, or LinkedIn Learning
+    3. Emphasize [specific experience or skill] in your resume and quantify the impact wherever possible
     """
     response = model.generate_content(prompt)
     return response.text
 
 # Function to format LLM output for UI/PDF
 def format_for_ui_and_pdf(match_info: dict, recommendations: str) -> dict:
-    clean_text = re.sub(r"^[\*\-\`\s]*", "", recommendations, flags=re.MULTILINE)
-    clean_text = re.sub(r"\s*$", "", clean_text, flags=re.MULTILINE)
-
-    lines = re.split(r'\n\d+\.\s+', clean_text)
-    if len(lines) == 1:
-        lines = [line.strip() for line in clean_text.split('\n') if line.strip()]
-    else:
-        lines = [line.strip() for line in lines if line.strip()]
-
+    clean_text = recommendations.replace('\r\n', '\n').replace('\r', '\n').strip()
+    lines = [re.sub(r'^[\*\-\`\s]*', '', line).strip() for line in clean_text.split('\n') if line.strip()]
     cleaned_lines = [re.sub(r'^\d+\.\s*', '', line) for line in lines]
 
     return {
@@ -221,175 +250,177 @@ def format_for_ui_and_pdf(match_info: dict, recommendations: str) -> dict:
 
 # Function to export PDF
 def export_to_pdf(formatted_data: dict) -> str:
-    """
-    Generate a premium-style Resume Optimization Report for HR/Recruiters.
-    """
-    # Create temp file
     pdf_fd, pdf_path = tempfile.mkstemp(suffix=".pdf")
     os.close(pdf_fd)
 
     doc = SimpleDocTemplate(
         pdf_path,
         pagesize=A4,
-        leftMargin=50,
-        rightMargin=50,
-        topMargin=50,
-        bottomMargin=50
+        leftMargin=40,
+        rightMargin=40,
+        topMargin=40,
+        bottomMargin=40
     )
 
-    styles = getSampleStyleSheet()
-    elements = []
-
-    # ---------------- Custom Styles ---------------- #
+    # Define styles
     title_style = ParagraphStyle(
         "TitleStyle",
-        parent=styles["Title"],
-        fontSize=24,
-        textColor=colors.HexColor("#1a73e8"),
+        fontName="Roboto-Bold",
+        fontSize=PDF_THEME['font_size_title'],
+        textColor=PDF_THEME['primary_color'],
         alignment=1,
-        spaceAfter=35,
-        leading=28
+        spaceAfter=15,
+        leading=PDF_THEME['line_spacing']
     )
 
     header_style = ParagraphStyle(
         "HeaderStyle",
-        parent=styles["Heading2"],
-        fontSize=16,
-        textColor=colors.HexColor("#202124"),
-        spaceBefore=22,
-        spaceAfter=15,
-        leading=18
+        fontName="Roboto-Bold",
+        fontSize=PDF_THEME['font_size_header'],
+        textColor=PDF_THEME['neutral_color'],
+        spaceBefore=12,
+        spaceAfter=10,
+        leading=16
     )
 
     normal_style = ParagraphStyle(
         "NormalStyle",
-        parent=styles["Normal"],
-        fontSize=11,
-        leading=16,
-        textColor=colors.HexColor("#3c4043"),
+        fontName="Roboto-Regular",
+        fontSize=PDF_THEME['font_size_normal'],
+        leading=PDF_THEME['line_spacing'],
+        textColor=PDF_THEME['neutral_color']
     )
 
     footer_style = ParagraphStyle(
         "FooterStyle",
-        parent=styles["Normal"],
-        fontSize=10,
+        fontName="Roboto-Italic",
+        fontSize=9,
         textColor=colors.HexColor("#5f6368"),
-        alignment=1
+        alignment=1,
+        spaceBefore=20
     )
 
-    # ---------------- Cover Title ---------------- #
-    elements.append(Paragraph("Resume Optimization Report", title_style))
-    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %I:%M %p')}", normal_style))
-    elements.append(Spacer(1, 25))
+    subtitle_style = ParagraphStyle(
+    "SubtitleStyle",
+    fontName="Roboto-Italic",
+    fontSize=9,
+    textColor=colors.HexColor("#5f6368"),
+    spaceAfter=10
+    )
 
-    # ---------------- Executive Summary ---------------- #
+    important_style = ParagraphStyle(
+    "ImportantStyle",
+    fontName="Roboto-Bold",
+    fontSize=12,
+    leading=14,
+    textColor=PDF_THEME['primary_color'],
+    spaceBefore=10,
+    spaceAfter=15
+    )
+
+    elements = []
+
+    # Cover Title
+    elements.append(Paragraph("Resume Optimization Report", title_style))
+    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %I:%M %p')}", subtitle_style))
+    elements.append(Spacer(1, 10))
+
+    # Executive Summary
     elements.append(Paragraph("Executive Summary", header_style))
     elements.append(Paragraph(
-        f"This report evaluates the candidate’s resume against the target job role requirements. "
-        f"It highlights matched skills, missing gaps, and provides actionable recommendations "
-        f"to improve the candidate’s fit for MAANG-level roles or other high-impact companies.",
+        "This report compares the candidate’s resume against the target job role, "
+        "highlighting matched skills, missing gaps, and actionable recommendations "
+        "to improve role fit.",
         normal_style
     ))
     elements.append(Spacer(1, 20))
 
-    # ---------------- Skill Match Section with Chart ---------------- #
+    # Skill Match Overview + Progress Bar
     elements.append(Paragraph("Skill Match Overview", header_style))
     elements.append(Paragraph(f"Overall Match: <b>{formatted_data['match_percentage']}%</b>", normal_style))
     elements.append(Spacer(1, 12))
 
-    # Horizontal Progress Bar
-    d = Drawing(400, 60)
-    chart = HorizontalBarChart()
-    chart.x = 40
-    chart.y = 20
-    chart.height = 20
-    chart.width = 300
-    chart.data = [[formatted_data["match_percentage"], 100 - formatted_data["match_percentage"]]]
-    chart.bars[0].fillColor = colors.HexColor("#1a73e8")  # match
-    chart.bars[1].fillColor = colors.HexColor("#e8eaed")  # background
-    chart.bars[0].strokeColor = colors.HexColor("#1a73e8")
-    chart.bars[1].strokeColor = colors.HexColor("#dadce0")
-    chart.valueAxis.valueMin = 0
-    chart.valueAxis.valueMax = 100
-    chart.valueAxis.visible = False
-    chart.categoryAxis.visible = False
-    d.add(chart)
-    elements.append(d)
-    elements.append(Spacer(1, 25))
 
-    # ---------------- Skills Table ---------------- #
+    match_pct = formatted_data["match_percentage"]
+
+    # Create a minimal bar chart manually
+    chart_width = 300
+    chart_height = 20
+    chart = Drawing(chart_width + 2, chart_height + 20)
+
+    # Background bar (full length)
+    chart.add(Rect(0, 0, chart_width, chart_height, fillColor=colors.HexColor("#e8eaed"), strokeColor=None, rx=3, ry=3))
+
+    # Filled bar (match)
+    filled_width = chart_width * (match_pct / 100)
+    chart.add(Rect(0, 0, filled_width, chart_height, fillColor=PDF_THEME['primary_color'], strokeColor=None, rx=3, ry=3))
+
+    # Text label above bar
+    chart.add(String(chart_width / 2, chart_height + 5, f"{match_pct:.1f}%", textAnchor="middle",
+                fontName="Roboto-Bold", fontSize=10, fillColor=PDF_THEME['neutral_color']))
+
+    elements.append(chart)
+    elements.append(Spacer(1, 20))
+    # Skills Breakdown Table
     elements.append(Paragraph("Skills Breakdown", header_style))
-    matched = ", ".join(formatted_data["matched_skills"]) if formatted_data["matched_skills"] else "None"
-    missing = ", ".join(formatted_data["missing_skills"]) if formatted_data["missing_skills"] else "None"
-
-    data = [
-        ["Matched Skills", matched],
-        ["Missing Skills", missing],
+    table_data = [
+    ["Matched Skills", Paragraph(", ".join(formatted_data["matched_skills"]) or "None", normal_style)],
+    ["Missing Skills", Paragraph(", ".join(formatted_data["missing_skills"]) or "None", normal_style)]
     ]
-    table = Table(data, colWidths=[150, 320])
+
+    table = Table(table_data, colWidths=[150, 320])
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#e6f4ea")),
-        ("BACKGROUND", (0, 1), (0, 1), colors.HexColor("#fce8e6")),
-        ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#202124")),
-        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("BACKGROUND", (0, 0), (0, 0), PDF_THEME['background_matched']),
+        ("BACKGROUND", (0, 1), (0, 1), PDF_THEME['background_missing']),
+        ("TEXTCOLOR", (0, 0), (-1, -1), PDF_THEME['neutral_color']),
+        ("FONTNAME", (0, 0), (-1, -1), "Roboto-Regular"),
+        ("FONTSIZE", (0, 0), (-1, -1), PDF_THEME['font_size_normal']),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#dadce0")),
-        ("INNERGRID", (0, 0), (-1, -1), 0.6, colors.HexColor("#dadce0")),
+        ("BOX", (0, 0), (-1, -1), 0.5, PDF_THEME['neutral_color']),
+        ("INNERGRID", (0, 0), (-1, -1), 0.3, PDF_THEME['neutral_color']),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
     ]))
     elements.append(table)
-    elements.append(Spacer(1, 30))
+    elements.append(Spacer(1, 20))
 
-    # ---------------- Recommendations ---------------- #
+    # Actionable Recommendations
     elements.append(Paragraph("Actionable Recommendations", header_style))
-
     for i, rec in enumerate(formatted_data["recommendations"], start=1):
-        # Categorize recommendation
         category = "General"
+        color = PDF_THEME['neutral_color']
+
         rec_lower = rec.lower()
-        color = colors.HexColor("#202124")  # default dark grey
-
-        if any(x in rec_lower for x in ["course","certification","certificate","exam"]):
+        if any(x in rec_lower for x in CATEGORY_RULES["Certification"]):
             category = "Certification"
-            color = colors.HexColor("#34a853")  # green
-        elif any(x in rec_lower for x in ["project","github","portfolio"]):
+            color = PDF_THEME['secondary_color']
+        elif any(x in rec_lower for x in CATEGORY_RULES["Project"]):
             category = "Project"
-            color = colors.HexColor("#1a73e8")  # blue
-        elif any(x in rec_lower for x in ["highlight","resume","experience","skills"]):
+            color = PDF_THEME['primary_color']
+        elif any(x in rec_lower for x in CATEGORY_RULES["Skill"]):
             category = "Skill"
-            color = colors.HexColor("#fbbc05")  # orange
+            color = PDF_THEME['warning_color']
 
-        # Use bullet (•) for unordered list or number for ordered list
-        bullet = f"{i}."  # ordered
-        # bullet = "•"  # uncomment for unordered
-
-        # --- ADD THIS LINE: Markdown bold to ReportLab bold ---
-        rec = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", rec)
-
-        # Combine bullet + colored category + recommendation text
-        para_text = f"{bullet} <b><font color='{color}'>{category}:</font></b> {rec}"
-        
-        # Add to elements
+        para_text = f"{i}. <font color='{color}'><b>{category}</b></font>: {rec}"
         elements.append(Paragraph(para_text, normal_style))
-        elements.append(Spacer(1, 8))  # smaller spacing between items
-        # After the recommendations loop
-    estimated_time = formatted_data.get("estimated_time_saved_minutes", 0)
-    elements.append(
-        Paragraph(
-            f"<font color='#202124'>&#9632;</font> <b>Estimated Time Saved: {estimated_time} minutes</b>", 
-            normal_style
-        )
-    )
-    elements.append(Spacer(1, 16))  # Optional extra space at the end
+        elements.append(Spacer(1, 6))
 
-    # ---------------- Footer ---------------- #
-    elements.append(PageBreak())
-    elements.append(Spacer(1, 250))
+    estimated_time = formatted_data.get("estimated_time_saved_minutes", 0)
+    elements.append(Paragraph(
+        f"<b>Estimated Time Saved:</b> {estimated_time} minutes", 
+        important_style
+    ))
+
+    # Footer
     footer = Paragraph(
-        "Generated by <b>OptiResume AI</b> – Empowering Smarter Career Growth", 
+        "Generated by <b>OptiResume AI</b>, Empowering Smarter Career Growth",
         footer_style
     )
     elements.append(footer)
 
     doc.build(elements)
+
     return pdf_path

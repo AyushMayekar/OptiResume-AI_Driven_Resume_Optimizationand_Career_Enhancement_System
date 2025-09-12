@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, Form
 from core import parse_resume, extract_job_skills, analyze_skill_match, generate_llm_recommendations, format_for_ui_and_pdf, export_to_pdf, get_description_from_db
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 temp_storage = {}
@@ -14,8 +15,7 @@ async def analyze_resume(file: UploadFile, job_role: str = Form(...), job_descri
     recommendations = generate_llm_recommendations(resume_data, job_description, match_info)
     formatted = format_for_ui_and_pdf(match_info, recommendations)
     
-    # Optionally store formatted result temporarily for PDF export later
-    temp_storage["last_result"] = formatted  # Example temp storage
+    temp_storage["last_result"] = formatted 
 
     return {
         "result": formatted
@@ -28,6 +28,8 @@ async def export_pdf():
         return {"error": "No analysis result available to export."}
 
     pdf_path = export_to_pdf(formatted_data)
-    return {
-        "pdf_download_link": pdf_path  # Frontend can use this to show "Download PDF"
-    }
+    return FileResponse(
+        path=pdf_path,
+        filename="ResumeReport(OptiResume).pdf",
+        media_type="application/pdf"
+    )
