@@ -1,7 +1,7 @@
 import uvicorn
 import os
 from fastapi import FastAPI, UploadFile, Form
-from core import parse_resume, extract_job_skills, analyze_skill_match, generate_llm_recommendations, format_for_ui_and_pdf, export_to_pdf, get_description_from_db
+from core import parse_resume, extract_job_skills, analyze_skill_match, generate_llm_recommendations, format_for_ui_and_pdf, export_to_pdf, get_description_from_db, calculate_ats_score
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -42,8 +42,12 @@ async def analyze_resume(file: UploadFile, job_role: str = Form(...), job_descri
         job_description = get_description_from_db(job_role)
     required_skills = extract_job_skills(job_description)
     match_info = analyze_skill_match(resume_data, required_skills)
+    
+    # Calculate ATS score (independent of skill matching)
+    ats_data = calculate_ats_score(resume_data, job_description)
+    
     recommendations = generate_llm_recommendations(resume_data, job_description, match_info)
-    formatted = format_for_ui_and_pdf(match_info, recommendations)
+    formatted = format_for_ui_and_pdf(match_info, recommendations, ats_data)
     
     temp_storage["last_result"] = formatted 
 
