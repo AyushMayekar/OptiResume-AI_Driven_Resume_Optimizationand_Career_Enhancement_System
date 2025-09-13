@@ -185,6 +185,138 @@ def _normalize_skill(s: str) -> str:
     s = re.sub(r"[^\w+#.+-]", "", s)
     return s
 
+
+# Function to calculate ATS compatibility score (independent of skill matching)
+def calculate_ats_score(resume_data: dict, job_description: str) -> dict:
+    """
+    Calculate ATS compatibility score based on resume structure and formatting:
+    - Resume structure and section completeness
+    - ATS-friendly formatting
+    - Keyword density from job description
+    - Contact information completeness
+    - File format and readability
+    """
+    resume_text = resume_data.get("text", "").lower()
+    job_description_lower = job_description.lower()
+    
+    # 1. Resume Structure Score (35% weight)
+    structure_score = 0
+    essential_sections = ["experience", "education", "skills", "summary", "objective", "contact", "phone", "email"]
+    for section in essential_sections:
+        if section in resume_text:
+            structure_score += 12.5  # 100/8 sections = 12.5 each
+    
+    # 2. ATS-Friendly Formatting Score (25% weight)
+    formatting_score = 0
+    
+    # Check for ATS-friendly elements
+    if "•" in resume_text or "-" in resume_text:  # Bullet points
+        formatting_score += 20
+    if any(word in resume_text for word in ["years", "experience", "worked"]):  # Action words
+        formatting_score += 20
+    if any(word in resume_text for word in ["bachelor", "master", "degree", "certification"]):  # Education keywords
+        formatting_score += 20
+    if any(word in resume_text for word in ["developed", "managed", "led", "created", "implemented"]):  # Action verbs
+        formatting_score += 20
+    if any(char.isdigit() for char in resume_text):  # Quantified achievements
+        formatting_score += 20
+    
+    # 3. Job Description Keyword Density (25% weight)
+    # Extract keywords from job description
+    job_keywords = []
+    important_words = ["experience", "skills", "knowledge", "proficiency", "expertise", "familiarity", "understanding"]
+    for word in important_words:
+        if word in job_description_lower:
+            job_keywords.append(word)
+    
+    # Add technical terms from job description
+    tech_terms = ["python", "javascript", "react", "angular", "vue", "node", "sql", "database", "api", "cloud", "aws", "azure", "docker", "kubernetes"]
+    for term in tech_terms:
+        if term in job_description_lower:
+            job_keywords.append(term)
+    
+    keyword_matches = sum(1 for keyword in job_keywords if keyword in resume_text)
+    keyword_density_score = min(100, (keyword_matches / len(job_keywords)) * 100) if job_keywords else 50
+    
+    # 4. Contact Information Completeness (15% weight)
+    contact_score = 0
+    contact_elements = ["email", "phone", "linkedin", "github", "portfolio", "website"]
+    for element in contact_elements:
+        if element in resume_text:
+            contact_score += 16.67  # 100/6 elements = 16.67 each
+    
+    # Calculate weighted ATS score
+    ats_score = (
+        structure_score * 0.35 +
+        formatting_score * 0.25 +
+        keyword_density_score * 0.25 +
+        contact_score * 0.15
+    )
+    
+    return {
+        "overall_ats_score": round(ats_score, 1),
+        "structure_score": round(structure_score, 1),
+        "formatting_score": round(formatting_score, 1),
+        "keyword_density_score": round(keyword_density_score, 1),
+        "contact_score": round(contact_score, 1),
+        "ats_grade": get_ats_grade(ats_score),
+        "ats_recommendations": generate_ats_recommendations(ats_score, structure_score, formatting_score, keyword_density_score, contact_score)
+    }
+
+def get_ats_grade(score: float) -> str:
+    """Convert ATS score to letter grade"""
+    if score >= 90:
+        return "A+"
+    elif score >= 85:
+        return "A"
+    elif score >= 80:
+        return "A-"
+    elif score >= 75:
+        return "B+"
+    elif score >= 70:
+        return "B"
+    elif score >= 65:
+        return "B-"
+    elif score >= 60:
+        return "C+"
+    elif score >= 55:
+        return "C"
+    elif score >= 50:
+        return "C-"
+    else:
+        return "D"
+
+def generate_ats_recommendations(overall_score: float, structure_score: float, formatting_score: float, keyword_score: float, contact_score: float) -> list:
+    """Generate specific ATS improvement recommendations"""
+    recommendations = []
+    
+    if structure_score < 70:
+        recommendations.append("Add missing essential sections like Summary, Objective, or Contact Information")
+        recommendations.append("Ensure all major sections are clearly labeled and properly formatted")
+    
+    if formatting_score < 70:
+        recommendations.append("Use bullet points (•) to organize your experience and achievements")
+        recommendations.append("Include action verbs like 'developed', 'managed', 'led', 'created' in your descriptions")
+        recommendations.append("Add quantified achievements with specific numbers and metrics")
+    
+    if keyword_score < 70:
+        recommendations.append("Include more keywords from the job description throughout your resume")
+        recommendations.append("Use industry-specific terminology and technical terms relevant to the role")
+    
+    if contact_score < 70:
+        recommendations.append("Add complete contact information including email, phone, and LinkedIn profile")
+        recommendations.append("Include professional portfolio or GitHub links if applicable")
+    
+    if overall_score < 70:
+        recommendations.append("Use standard section headers (Experience, Education, Skills) for better ATS parsing")
+        recommendations.append("Avoid complex formatting, tables, or graphics that ATS systems can't read")
+        recommendations.append("Save your resume as a .pdf or .docx file for maximum compatibility")
+    
+    if not recommendations:
+        recommendations.append("Your resume has excellent ATS compatibility! Keep up the great work.")
+    
+    return recommendations
+
 # Function to analyze skill match
 def analyze_skill_match(resume_data: dict, job_skills: list) -> dict:
     resume_skills = resume_data.get("skills") or []
@@ -235,18 +367,24 @@ def generate_llm_recommendations(resume_data: dict, job_description: str, match_
     return response.text
 
 # Function to format LLM output for UI/PDF
-def format_for_ui_and_pdf(match_info: dict, recommendations: str) -> dict:
+def format_for_ui_and_pdf(match_info: dict, recommendations: str, ats_data: dict = None) -> dict:
     clean_text = recommendations.replace('\r\n', '\n').replace('\r', '\n').strip()
     lines = [re.sub(r'^[\*\-\`\s]*', '', line).strip() for line in clean_text.split('\n') if line.strip()]
     cleaned_lines = [re.sub(r'^\d+\.\s*', '', line) for line in lines]
 
-    return {
+    result = {
         "match_percentage": match_info["match_percentage"],
         "matched_skills": match_info["matched_skills"],
         "missing_skills": match_info["missing_skills"],
         "recommendations": cleaned_lines,
         "estimated_time_saved_minutes": calculate_estimated_time_saved(match_info)
     }
+    
+    # Add ATS score data if available
+    if ats_data:
+        result["ats_score"] = ats_data
+    
+    return result
 
 # Function to export PDF
 def export_to_pdf(formatted_data: dict) -> str:
@@ -432,6 +570,40 @@ def export_to_pdf(formatted_data: dict) -> str:
         """
         elements.append(Paragraph(para_text, normal_style))
         elements.append(Spacer(1, 12))
+
+    # ATS Score Section (if available)
+    if "ats_score" in formatted_data:
+        ats_data = formatted_data["ats_score"]
+        elements.append(Spacer(1, 20))
+        elements.append(Paragraph("ATS Compatibility Analysis", header_style))
+        
+        # ATS Score Overview
+        ats_summary_text = f"""
+        <para align="left" leftIndent="20">
+        <font name="Roboto-Bold" size="12" color="{PDF_THEME['primary_color']}">🎯 ATS Compatibility Score: <b>{ats_data['overall_ats_score']}%</b> (Grade: {ats_data['ats_grade']})</font><br/>
+        <font name="Roboto-Regular" size="11" color="{PDF_THEME['neutral_color']}">
+        • Resume Structure: <b>{ats_data['structure_score']}%</b><br/>
+        • ATS Formatting: <b>{ats_data['formatting_score']}%</b><br/>
+        • Keyword Density: <b>{ats_data['keyword_density_score']}%</b><br/>
+        • Contact Information: <b>{ats_data['contact_score']}%</b>
+        </font>
+        </para>
+        """
+        elements.append(Paragraph(ats_summary_text, normal_style))
+        
+        # ATS Recommendations
+        if ats_data.get('ats_recommendations'):
+            elements.append(Spacer(1, 15))
+            elements.append(Paragraph("ATS Optimization Recommendations", header_style))
+            for i, rec in enumerate(ats_data['ats_recommendations'], start=1):
+                ats_rec_text = f"""
+                <para align="left" leftIndent="20">
+                <font name="Roboto-Bold" size="11" color="{PDF_THEME['primary_color']}">{i}.</font>
+                <font name="Roboto-Regular" size="11" color="{PDF_THEME['neutral_color']}"> {rec}</font>
+                </para>
+                """
+                elements.append(Paragraph(ats_rec_text, normal_style))
+                elements.append(Spacer(1, 8))
 
     # Summary Section
     elements.append(Spacer(1, 20))

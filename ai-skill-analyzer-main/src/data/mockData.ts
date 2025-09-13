@@ -22,6 +22,16 @@ export interface AnalysisResult {
     education: number;
     certifications: number;
   };
+  atsScore?: {
+    overall_ats_score: number;
+    keyword_density_score: number;
+    skills_match_score: number;
+    structure_score: number;
+    experience_score: number;
+    education_score: number;
+    ats_grade: string;
+    ats_recommendations: string[];
+  };
 }
 
 export const mockAnalysisResult: AnalysisResult = {
@@ -61,6 +71,20 @@ export const mockAnalysisResult: AnalysisResult = {
     experience: 92,
     education: 78,
     certifications: 65,
+  },
+  atsScore: {
+    overall_ats_score: 78.5,
+    structure_score: 85,
+    formatting_score: 75,
+    keyword_density_score: 80,
+    contact_score: 70,
+    ats_grade: "B+",
+    ats_recommendations: [
+      "Add missing essential sections like Summary or Objective",
+      "Use bullet points to organize your experience and achievements",
+      "Include more keywords from the job description throughout your resume",
+      "Add complete contact information including email and phone"
+    ]
   },
 };
 
