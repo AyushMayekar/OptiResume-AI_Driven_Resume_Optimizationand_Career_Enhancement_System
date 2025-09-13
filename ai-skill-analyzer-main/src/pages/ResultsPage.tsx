@@ -30,298 +30,269 @@ const ResultsPage = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [result, setResult] = useState<any>(null);
   const techCourses: Record<string, { level: 'Beginner' | 'Intermediate'; url: string }> = {
-    // Python and Frameworks
-    "Python": {
+    "python": {
       level: "Beginner",
-      url: "https://www.coursera.org/learn/python"
+      url: "https://www.coursera.org/specializations/python"
     },
-    "Django": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/python-django-the-practical-guide/"
-    },
-    "Flask": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/python-and-flask-bootcamp-create-websites-using-flask/"
-    },
-    "FastAPI": {
-      level: "Intermediate",
-      url: "https://fastapi.tiangolo.com/tutorial/"
-    },
-
-    // Data Science / ML Libraries
-    "NumPy": {
+    "django": {
       level: "Beginner",
-      url: "https://www.datacamp.com/courses/intro-to-python-for-data-science"
+      url: "https://www.coursera.org/learn/django-web-framework"
     },
-    "Pandas": {
+    "flask": {
       level: "Beginner",
-      url: "https://www.datacamp.com/courses/pandas-foundations"
+      url: "https://www.udemy.com/topic/flask/free/"
     },
-    "SciPy": {
-      level: "Intermediate",
-      url: "https://www.coursera.org/learn/scipy-python"
-    },
-    "Matplotlib": {
+    "fastapi": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/matplotlib-for-data-visualization-in-python/"
+      url: "https://www.youtube.com/watch?v=Lu8lXXlstvM"
     },
-    "Seaborn": {
+    "numpy": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/data-visualization-with-python-seaborn/"
+      url: "https://www.udemy.com/course/python-introduction-to-data-science/?utm_source=bing&utm_medium=udemyads&utm_campaign=BG-Search_Keyword_Beta_Prof_la.EN_cc.India&campaigntype=Search&portfolio=Bing-India&language=EN&product=Course&test=&audience=Keyword&topic=NumPy&priority=Beta&utm_content=deal4584&utm_term=_._ag_1326013411672412_._ad__._kw_NumPy+Course_._de_c_._dm__._pl__._ti_kwd-82876968999735%3Aaud-822298023%3Aloc-90_._li_155679_._pd__._&matchtype=e&msclkid=a1feee1f99f01b85189d86dab100b460&couponCode=PMNVD2025"
     },
-    "TensorFlow": {
-      level: "Intermediate",
-      url: "https://www.coursera.org/professional-certificates/tensorflow-in-practice"
-    },
-    "Keras": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/deep-learning-keras/"
-    },
-    "PyTorch": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/deep-learning-with-pytorch/"
-    },
-
-    // DevOps Tools
-    "Jenkins": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/jenkins-from-zero-to-hero/"
-    },
-    "Docker": {
+    "pandas": {
       level: "Beginner",
-      url: "https://www.coursera.org/learn/docker-for-the-absolute-beginner"
+      url: "https://www.udemy.com/course/python-introduction-to-data-science/?utm_source=bing&utm_medium=udemyads&utm_campaign=BG-Search_Keyword_Beta_Prof_la.EN_cc.India&campaigntype=Search&portfolio=Bing-India&language=EN&product=Course&test=&audience=Keyword&topic=NumPy&priority=Beta&utm_content=deal4584&utm_term=_._ag_1326013411672412_._ad__._kw_NumPy+Course_._de_c_._dm__._pl__._ti_kwd-82876968999735%3Aaud-822298023%3Aloc-90_._li_155679_._pd__._&matchtype=e&msclkid=a1feee1f99f01b85189d86dab100b460&couponCode=PMNVD2025"
     },
-    "Kubernetes": {
+    "scipy": {
       level: "Intermediate",
-      url: "https://www.edx.org/course/introduction-to-kubernetes"
+      url: "https://www.udemy.com/course/python-introduction-to-data-science/?utm_source=bing&utm_medium=udemyads&utm_campaign=BG-Search_Keyword_Beta_Prof_la.EN_cc.India&campaigntype=Search&portfolio=Bing-India&language=EN&product=Course&test=&audience=Keyword&topic=NumPy&priority=Beta&utm_content=deal4584&utm_term=_._ag_1326013411672412_._ad__._kw_NumPy+Course_._de_c_._dm__._pl__._ti_kwd-82876968999735%3Aaud-822298023%3Aloc-90_._li_155679_._pd__._&matchtype=e&msclkid=a1feee1f99f01b85189d86dab100b460&couponCode=PMNVD2025"
     },
-    "Ansible": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/ansible-for-the-absolute-beginner/"
-    },
-    "Terraform": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/learn-hashicorp-terraform/"
-    },
-
-    // Cloud Platforms
-    "AWS": {
-      level: "Intermediate",
-      url: "https://learn.cantrill.io/"
-    },
-    "Azure": {
-      level: "Intermediate",
-      url: "https://docs.microsoft.com/en-us/learn/paths/azure-fundamentals/"
-    },
-    "Google Cloud": {
-      level: "Intermediate",
-      url: "https://www.coursera.org/specializations/gcp-architecture"
-    },
-    "GCP": {
-      level: "Intermediate",
-      url: "https://www.coursera.org/specializations/gcp-architecture"
-    },
-    "Oracle Cloud": {
-      level: "Intermediate",
-      url: "https://www.oracle.com/cloud/education/cloud-certification.html"
-    },
-
-    // Databases
-    "PostgreSQL": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/postgresql-for-beginners/"
-    },
-    "MySQL": {
+    "matplotlib": {
       level: "Beginner",
-      url: "https://www.coursera.org/learn/sql-basics"
+      url: "https://www.udemy.com/course/python-introduction-to-data-science/?utm_source=bing&utm_medium=udemyads&utm_campaign=BG-Search_Keyword_Beta_Prof_la.EN_cc.India&campaigntype=Search&portfolio=Bing-India&language=EN&product=Course&test=&audience=Keyword&topic=NumPy&priority=Beta&utm_content=deal4584&utm_term=_._ag_1326013411672412_._ad__._kw_NumPy+Course_._de_c_._dm__._pl__._ti_kwd-82876968999735%3Aaud-822298023%3Aloc-90_._li_155679_._pd__._&matchtype=e&msclkid=a1feee1f99f01b85189d86dab100b460&couponCode=PMNVD2025"
     },
-    "MongoDB": {
-      level: "Intermediate",
-      url: "https://university.mongodb.com/courses/M001/about"
-    },
-    "SQLite": {
+    "seaborn": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/sqlite-database-for-beginners/"
+      url: "https://www.udemy.com/course/python-introduction-to-data-science/?utm_source=bing&utm_medium=udemyads&utm_campaign=BG-Search_Keyword_Beta_Prof_la.EN_cc.India&campaigntype=Search&portfolio=Bing-India&language=EN&product=Course&test=&audience=Keyword&topic=NumPy&priority=Beta&utm_content=deal4584&utm_term=_._ag_1326013411672412_._ad__._kw_NumPy+Course_._de_c_._dm__._pl__._ti_kwd-82876968999735%3Aaud-822298023%3Aloc-90_._li_155679_._pd__._&matchtype=e&msclkid=a1feee1f99f01b85189d86dab100b460&couponCode=PMNVD2025"
     },
-    "Redis": {
+    "tensorflow": {
       level: "Intermediate",
-      url: "https://www.udemy.com/course/redis-the-complete-developers-guide/"
+      url: "https://www.coursera.org/specializations/tensorflow-in-practice"
     },
-
-    // APIs & Web
-    "GraphQL": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/graphql-with-react-course/"
-    },
-    "REST API": {
+    "keras": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/rest-api-design/"
+      url: "https://www.coursera.org/learn/introduction-to-deep-learning-with-keras"
     },
-    "SOAP API": {
+    "pytorch": {
       level: "Intermediate",
-      url: "https://www.udemy.com/course/soap-api/"
+      url: "https://www.upgrad.com/machine-learning-ai-pgd-iiitb-lpv1/?ad_device=c&ad_network=o&ad_creative=79783521813324&ad_keyword_matchtype=p&ad_clickID=ff46081ebcf71322622660db96fda747&msclkid=ff46081ebcf71322622660db96fda747&utm_source=bing&utm_medium=cpc&utm_campaign=IND_ACQ_WEB_BI_NBSEARCH_DV_IIITB_EML_HIT_ROI&utm_term=deep%20learning%20courses&utm_content=PerformingKws"
     },
-
-    // Version Control
-    "Git": {
+    "jenkins": {
       level: "Beginner",
-      url: "https://www.udacity.com/course/how-to-use-git-and-github--ud775"
+      url: "https://www.coursera.org/learn/jenkins-for-beginners"
     },
-    "GitHub": {
+    "docker": {
       level: "Beginner",
-      url: "https://lab.github.com/githubtraining/introduction-to-github"
+      url: "https://www.coursera.org/learn/packt-docker-for-the-absolute-beginner-hands-on-rxori"
     },
-    "GitLab": {
+    "kubernetes": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/gitlab-ci-pipeline/"
+      url: "https://www.coursera.org/learn/kubernetes-for-absolute-beginners"
     },
-    "Bitbucket": {
+    "ansible": {
+      level: "Intermediate",
+      url: "https://www.coursera.org/learn/packt-ansible-and-ansible-playbooks-for-automation-t9h7v"
+    },
+    "terraform": {
+      level: "Intermediate",
+      url: "https://www.udemy.com/course/terraform-beginner-to-advanced/?utm_source=bing&utm_medium=udemyads&utm_campaign=BG-Search_Keyword_Beta_Prof_la.EN_cc.India&campaigntype=Search&portfolio=Bing-India&language=EN&product=Course&test=&audience=Keyword&topic=HashiCorp_Certified%3A_Terraform_Associate&priority=Beta&utm_content=deal4584&utm_term=_._ag_1323814388455850_._ad__._kw_Terraform+Beginner_._de_c_._dm__._pl__._ti_kwd-82739519403477%3Aloc-90_._li_155679_._pd__._&matchtype=p&msclkid=723f079fb9fb109fd2e56f5a937941c1"
+    },
+    "aws": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/bitbucket-version-control/"
+      url: "https://www.coursera.org/specializations/aws-fundamentals"
     },
-
-    // Messaging / Queues
-    "Celery": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/celery-with-django/"
-    },
-    "RabbitMQ": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/rabbitmq-for-developers/"
-    },
-
-    // ELK Stack
-    "Elasticsearch": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/elasticsearch-complete-guide/"
-    },
-    "Logstash": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/logstash/"
-    },
-    "Kibana": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/kibana/"
-    },
-
-    // Servers & OS
-    "Apache": {
+    "azure": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/apache-http-server/"
+      url: "https://www.udemy.com/topic/microsoft-az-900/"
     },
-    "Nginx": {
+    "google cloud": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/nginx-fundamentals/"
+      url: "https://cloud.google.com/learn/training"
     },
-    "Linux": {
+    "gcp": {
       level: "Beginner",
-      url: "https://www.edx.org/learn/linux/red-hat-fundamentals-of-red-hat-enterprise-linux"
+      url: "https://cloud.google.com/learn/training"
     },
-    "Ubuntu": {
+    "oracle cloud": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/ubuntu-essentials/"
+      url: "https://learn.oracle.com/education"
     },
-    "CentOS": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/centos-linux-for-beginners/"
-    },
-
-    // Development Practices
-    "Microservices": {
-      level: "Intermediate",
-      url: "https://www.coursera.org/learn/microservices-development"
-    },
-    "CI/CD": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/ci-cd-pipeline/"
-    },
-    "TDD": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/test-driven-development/"
-    },
-    "BDD": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/bdd-with-cucumber-and-specflow/"
-    },
-
-    // Security & Authentication
-    "OAuth": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/oauth-2/"
-    },
-    "JWT": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/json-web-token/"
-    },
-    "SSL": {
+    "postgresql": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/ssl-tls/"
+      url: "https://www.coursera.org/specializations/postgresql-for-everybody"
     },
-
-    // Programming Paradigms & Concepts
-    "Object-Oriented Programming": {
+    "mysql": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/object-oriented-programming/"
+      url: "https://www.coursera.org/learn/database-structures-and-management-with-mysql"
     },
-    "OOP": {  // Alias for Object-Oriented Programming
+    "mongodb": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/object-oriented-programming/"
+      url: "https://learn.mongodb.com/courses"
     },
-    "Multithreading": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/java-multithreading-concurrency-performance-optimization/"
-    },
-    "Asyncio": {
-      level: "Intermediate",
-      url: "https://realpython.com/async-io-python/"
-    },
-
-    // Frontend Frameworks and Languages
-    "React": {
+    "sqlite": {
       level: "Beginner",
-      url: "https://reactjs.org/docs/getting-started.html"
+      url: "https://www.coursera.org/learn/sql-foundations"
     },
-    "Angular": {
+    "redis": {
       level: "Intermediate",
-      url: "https://www.udemy.com/course/the-complete-guide-to-angular-2/"
+      url: "https://www.udemy.com/course/learn-redis-step-by-step/?utm_source=bing&utm_medium=udemyads&utm_campaign=BG-Search_DSA_Beta_Prof_la.EN_cc.India&campaigntype=Search&portfolio=Bing-India&language=EN&product=Course&test=&audience=DSA&topic=&priority=Beta&utm_content=deal4584&utm_term=_._ag_1327112923136029_._ad__._kw_IT+en_._de_c_._dm__._pl__._ti_dat-2334744222699522%3Aloc-90_._li_155679_._pd__._&matchtype=b&msclkid=89dcf4a6151616700f599c633fe4c892&couponCode=PMNVD2025"
     },
-    "Vue.js": {
+    "graphql": {
+      level: "Beginner",
+      url: "https://www.coursera.org/specializations/graphql-mastery-from-fundamentals-to-production"
+    },
+    "rest api": {
+      level: "Beginner",
+      url: "https://www.udemy.com/course/api-with-postman-for-absolute-beginners/?couponCode=PMNVD2025"
+    },
+    "soap api": {
       level: "Intermediate",
+      url: "https://www.udemy.com/course/soap-web-services-mastering-api-design-and-implementation/"
+    },
+    "git": {
+      level: "Beginner",
+      url: "https://www.udemy.com/course/git-and-github-crash-course-creating-a-repository-from-scratch/"
+    },
+    "github": {
+      level: "Beginner",
+      url: "https://www.udemy.com/course/git-and-github-crash-course-creating-a-repository-from-scratch/"
+    },
+    "gitlab": {
+      level: "Intermediate",
+      url: "https://www.coursera.org/learn/complete-git-with-gitlab-and-bitbucket"
+    },
+    "bitbucket": {
+      level: "Intermediate",
+      url: "https://www.coursera.org/learn/complete-git-with-gitlab-and-bitbucket"
+    },
+    "celery": {
+      level: "Intermediate",
+      url: "https://www.udemy.com/course/django-celery-mastery/?couponCode=PMNVD2025"
+    },
+    "rabbitmq": {
+      level: "Intermediate",
+      url: "https://www.udemy.com/course/rabbitmqmasterclass/"
+    },
+    "elasticsearch": {
+      level: "Beginner",
+      url: "https://www.edx.org/learn/nosql/the-university-of-michigan-database-architecture-scale-and-nosql-with-elasticsearch?index=product&queryId=7e6bb674a4119b6447333c51a1b4a316&position=1"
+    },
+    "logstash": {
+      level: "Intermediate",
+      url: "https://www.udemy.com/topic/logstash/"
+    },
+    "kibana": {
+      level: "Beginner",
+      url: "https://www.udemy.com/topic/kibana/"
+    },
+    "apache": {
+      level: "Beginner",
+      url: "https://www.udemy.com/topic/apache-web-server/"
+    },
+    "nginx": {
+      level: "Beginner",
+      url: "https://www.udemy.com/course/nginx-crash-course/"
+    },
+    "linux": {
+      level: "Beginner",
+      url: "https://www.coursera.org/learn/packt-a-beginners-guide-to-linux-z2e2k"
+    },
+    "ubuntu": {
+      level: "Beginner",
+      url: "https://www.coursera.org/learn/packt-a-beginners-guide-to-linux-z2e2k"
+    },
+    "centos": {
+      level: "Beginner",
+      url: "https://www.coursera.org/learn/packt-a-beginners-guide-to-linux-z2e2k"
+    },
+    "microservices": {
+      level: "Intermediate",
+      url: "https://www.udemy.com/course/microservices-with-spring-boot-and-spring-cloud/"
+    },
+    "ci/cd": {
+      level: "Beginner",
+      url: "https://www.coursera.org/learn/continuous-integration-and-continuous-delivery-ci-cd"
+    },
+    "tdd": {
+      level: "Intermediate",
+      url: "https://www.udemy.com/course/tdd-fundamentals-in-typescript/"
+    },
+    "bdd": {
+      level: "Intermediate",
+      url: "https://www.udemy.com/topic/bdd/"
+    },
+    "oauth": {
+      level: "Intermediate",
+      url: "https://www.coursera.org/learn/packt-backend-development-and-api-creation-w2u4y"
+    },
+    "jwt": {
+      level: "Intermediate",
+      url: "https://www.udemy.com/course/spring-security-zero-to-master/?utm_source=adwords&utm_medium=udemyads&utm_campaign=Search_DSA_Beta_Prof_la.EN_cc.India_Subs&campaigntype=Search&portfolio=India&language=EN&product=Subs&test=&audience=DSA&topic=&priority=Beta&utm_content=deal4584&utm_term=_._ag_185390584313_._ad_769665429119_._kw__._de_c_._dm__._pl__._ti_dsa-2436670172539_._li_9062237_._pd__._&matchtype=&gad_source=1&gad_campaignid=22900574867&gbraid=0AAAAADROdO0F94GKbcEGmIME-29mnprAi&gclid=Cj0KCQjwrJTGBhCbARIsANFBfgsV4mOrADwKcbORGVDIejxfOpxDhg8K__1C89CrTbuVbZmqrIp4fp4aAu58EALw_wcB&couponCode=PMNVD2025"
+    },
+    "ssl": {
+      level: "Beginner",
+      url: "https://sl-courses.iiitb.ac.in/advanced-executive-program-cyber-security?utm_source=google&utm_medium=cpc&utm_term=cyber%20security%20certification&utm_content=19592622120-142749540462-746367824092&utm_device=c&utm_campaign=Search-TechCluster-Cyber-CCyber-PG-IIITB-IN-Main-AllDevice-IIITBDomain-adgroup-Cyber-Certification&gad_source=1&gad_campaignid=19592622120&gbraid=0AAAAADt9AXOSBfRTOR62EKQKh1DuZAJLf&gclid=Cj0KCQjwrJTGBhCbARIsANFBfgvquPBTeOhfGKrc14MYcqATRW7GmAFnPhqTjM45RwwmvSf3lsGqDjMaAgIiEALw_wcB"
+    },
+    "object-oriented programming": {
+      level: "Beginner",
+      url: "https://www.coursera.org/specializations/object-oriented-programming-s12n"
+    },
+    "oop": {
+      level: "Beginner",
+      url: "https://www.coursera.org/specializations/object-oriented-programming-s12n"
+    },
+    "multithreading": {
+      level: "Intermediate",
+      url: "https://www.udemy.com/course/complete-guide-to-python-multithreading-and-multiprocessing/?utm_source=adwords&utm_medium=udemyads&utm_campaign=Search_DSA_Alpha_Prof_la.EN_cc.India_Subs&campaigntype=Search&portfolio=India&language=EN&product=Subs&test=&audience=DSA&topic=Python&priority=Alpha&utm_content=deal4584&utm_term=_._ag_185390583313_._ad_769665429044_._kw__._de_c_._dm__._pl__._ti_dsa-1652644802545_._li_9062237_._pd__._&matchtype=&gad_source=1&gad_campaignid=22900574864&gbraid=0AAAAADROdO2ELMNHqgXswMQFnXwdWezl7&gclid=Cj0KCQjwrJTGBhCbARIsANFBfgvyi0V0S646mrjZsJNYooPchyNm0sHXBmvSF56oQNuFYejHBdvwYtUaAtKMEALw_wcB&couponCode=PMNVD2025"
+    },
+    "asyncio": {
+      level: "Intermediate",
+      url: "https://www.coursera.org/learn/packt-concurrent-and-parallel-programming-in-python-um1n1"
+    },
+    "react": {
+      level: "Beginner",
+      url: "https://www.udemy.com/course/react-the-complete-guide-incl-redux/"
+    },
+    "angular": {
+      level: "Beginner",
+      url: "https://www.udemy.com/course/complete-angular-14-course-learn-frontend-development/?utm_source=adwords&utm_medium=udemyads&utm_campaign=Search_DSA_Alpha_Prof_la.EN_cc.India_Subs&campaigntype=Search&portfolio=India&language=EN&product=Subs&test=&audience=DSA&topic=Angular&priority=Alpha&utm_content=deal4584&utm_term=_._ag_185390583113_._ad_769665429035_._kw__._de_c_._dm__._pl__._ti_dsa-2436670445179_._li_9062237_._pd__._&matchtype=&gad_source=1&gad_campaignid=22900574864&gbraid=0AAAAADROdO2ELMNHqgXswMQFnXwdWezl7&gclid=Cj0KCQjwrJTGBhCbARIsANFBfguEO_lQskuBkZx9MAG5w1jy__z8_vzD72xAp7Pg5_G9qyxTwChHyNAaAh_BEALw_wcB&couponCode=PMNVD2025"
+    },
+    "vue.js": {
+      level: "Beginner",
       url: "https://www.udemy.com/course/vuejs-2-the-complete-guide/"
     },
-    "TypeScript": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/understanding-typescript/"
-    },
-    "JavaScript": {
+    "typescript": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/the-complete-javascript-course/"
+      url: "https://www.udemy.com/course/typescript-developer-course-beginner-to-expert/?utm_source=adwords&utm_medium=udemyads&utm_campaign=Search_DSA_Beta_Prof_la.EN_cc.India_Subs&campaigntype=Search&portfolio=India&language=EN&product=Subs&test=&audience=DSA&topic=&priority=Beta&utm_content=deal4584&utm_term=_._ag_185390585033_._ad_769665429293_._kw__._de_c_._dm__._pl__._ti_dsa-2436670172859_._li_9062237_._pd__._&matchtype=&gad_source=1&gad_campaignid=22900574867&gbraid=0AAAAADROdO0F94GKbcEGmIME-29mnprAi&gclid=Cj0KCQjwrJTGBhCbARIsANFBfguJfQLdsQTjnjWqEm65o_BvD6UXuFNvHLJVLbt4-Gx68iTW0HY8HrkaArBvEALw_wcB&couponCode=PMNVD2025"
     },
-
-    // Languages
-    "Java": {
+    "javascript": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/java-the-complete-java-developer-course/"
+      url: "https://www.coursera.org/specializations/javascript-beginner"
     },
-    "C++": {
+    "java": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/free-learn-c-tutorial-beginners/"
+      url: "https://www.coursera.org/learn/java-introduction"
     },
-    "C#": {
+    "c++": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/csharp-tutorial-for-beginners/"
+      url: "https://www.coursera.org/learn/programming-with-c-plus-plus"
     },
-    "PHP": {
+    "c#": {
       level: "Beginner",
-      url: "https://www.udemy.com/course/php-for-complete-beginners-includes-mysql-object-oriented/"
+      url: "https://www.udemy.com/topic/c-sharp/"
     },
-    "Ruby": {
+    "php": {
+      level: "Beginner",
+      url: "https://www.udemy.com/course/php-mastery-course-from-basics-to-advanced/?utm_source=adwords&utm_medium=udemyads&utm_campaign=Search_DSA_Beta_Prof_la.EN_cc.India_Subs&campaigntype=Search&portfolio=India&language=EN&product=Subs&test=&audience=DSA&topic=&priority=Beta&utm_content=deal4584&utm_term=_._ag_185390584313_._ad_769665429116_._kw__._de_c_._dm__._pl__._ti_dsa-2436670172539_._li_9062237_._pd__._&matchtype=&gad_source=1&gad_campaignid=22900574867&gbraid=0AAAAADROdO0F94GKbcEGmIME-29mnprAi&gclid=Cj0KCQjwrJTGBhCbARIsANFBfguYKHA93rJUQv-q83OheVUbLKJXPjJ6xx3uDN0XnZb9RQAfvlZQDEcaAqdeEALw_wcB&couponCode=PMNVD2025"
+    },
+    "ruby": {
       level: "Beginner",
       url: "https://www.udemy.com/course/the-complete-ruby-on-rails-developer-course/"
     },
-    "Go": {
-      level: "Intermediate",
-      url: "https://www.udemy.com/course/learn-how-to-code-in-go/"
+    "go": {
+      level: "Beginner",
+      url: "https://www.coursera.org/specializations/go-programming-language"
     }
   };
 
