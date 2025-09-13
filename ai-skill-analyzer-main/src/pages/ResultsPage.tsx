@@ -21,7 +21,6 @@ import {
   Zap
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import axios from 'axios';
 import { exportPdf } from '@/lib/api';
 
 const ResultsPage = () => {
@@ -83,32 +82,17 @@ const ResultsPage = () => {
     setIsExporting(true);
     try {
       // Use the API abstraction for PDF export
-      const response = await exportPdf();
+      const pdfBlob = await exportPdf();
       
-      if (response.pdf_download_link) {
-        // If backend returns a download link, use it
-        const a = document.createElement('a');
-        a.href = response.pdf_download_link;
-        a.download = `Elevatr_Resume_Analysis_${new Date().toISOString().split('T')[0]}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } else {
-        // Fallback to direct axios call for blob response
-        const axiosResponse = await axios.get(
-          'https://optiresume-aidrivenresumeoptimizationandcare-production.up.railway.app/export-pdf',
-          { responseType: 'blob' }
-        );
-
-        const blob = new Blob([axiosResponse.data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Elevatr_Resume_Analysis_${new Date().toISOString().split('T')[0]}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
+      // Create download link for the PDF blob
+      const url = window.URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `OptiResume_Analysis_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
 
       toast({
         title: 'Report exported!',

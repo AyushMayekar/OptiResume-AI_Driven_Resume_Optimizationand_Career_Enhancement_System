@@ -15,8 +15,23 @@ export type AnalyzeResumeResponse = {
   result: AnalysisResult;
 };
 
-// Use the working backend URL from ai-skill-analyzer-main
-const DEFAULT_BASE_URL = import.meta.env.VITE_BACKEND_URL || "https://optiresume-aidrivenresumeoptimizationandcare-production.up.railway.app";
+// Backend URL configuration with fallbacks
+const getBackendUrl = () => {
+  // Check for environment variable first
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return import.meta.env.VITE_BACKEND_URL;
+  }
+  
+  // Check if we're in development mode
+  if (import.meta.env.DEV) {
+    return "http://localhost:8000";
+  }
+  
+  // Production fallback
+  return "https://optiresume-aidrivenresumeoptimizationandcare-production.up.railway.app";
+};
+
+const DEFAULT_BASE_URL = getBackendUrl();
 
 export const getBackendBaseUrl = () => DEFAULT_BASE_URL.replace(/\/$/, "");
 
@@ -34,27 +49,45 @@ export async function analyzeResume(params: {
 
   const base = getBackendBaseUrl();
   const url = base ? `${base}/analyze-resume` : "/analyze-resume";
-  const res = await fetch(url, {
-    method: "POST",
-    body: form,
-  });
+  
+  console.log("Attempting to connect to:", url);
+  console.log("Backend base URL:", base);
+  
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      body: form,
+    });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Analyze failed (${res.status}): ${text || res.statusText}`);
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error("API Error:", res.status, text);
+      throw new Error(`Analyze failed (${res.status}): ${text || res.statusText}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error("Network Error:", error);
+    if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+      throw new Error(`Cannot connect to backend at ${url}. Please check if the backend is running.`);
+    }
+    throw error;
   }
-  return res.json();
 }
 
-export async function exportPdf(): Promise<{ pdf_download_link?: string; error?: string }> {
+export async function exportPdf(): Promise<Blob> {
   const base = getBackendBaseUrl();
   const url = base ? `${base}/export-pdf` : "/export-pdf";
+  
+  console.log("Exporting PDF from:", url);
+  
   const res = await fetch(url);
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`Export failed (${res.status}): ${text || res.statusText}`);
   }
-  return res.json();
+  
+  // Return the PDF as a blob
+  return res.blob();
 }
 
 

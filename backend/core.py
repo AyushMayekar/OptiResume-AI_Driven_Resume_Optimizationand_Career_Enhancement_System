@@ -343,32 +343,44 @@ def export_to_pdf(formatted_data: dict) -> str:
 
     match_pct = formatted_data["match_percentage"]
 
-    # Create a minimal bar chart manually
-    chart_width = 300
-    chart_height = 20
-    chart = Drawing(chart_width + 2, chart_height + 20)
+    # Create an enhanced progress bar
+    chart_width = 400
+    chart_height = 25
+    chart = Drawing(chart_width + 2, chart_height + 30)
 
-    # Background bar (full length)
-    chart.add(Rect(0, 0, chart_width, chart_height, fillColor=colors.HexColor("#e8eaed"), strokeColor=None, rx=3, ry=3))
+    # Background bar (full length) with border
+    chart.add(Rect(0, 0, chart_width, chart_height, 
+                   fillColor=colors.HexColor("#f5f5f5"), 
+                   strokeColor=PDF_THEME['primary_color'], 
+                   strokeWidth=1, rx=5, ry=5))
 
-    # Filled bar (match)
+    # Filled bar (match) with gradient effect
     filled_width = chart_width * (match_pct / 100)
-    chart.add(Rect(0, 0, filled_width, chart_height, fillColor=PDF_THEME['primary_color'], strokeColor=None, rx=3, ry=3))
+    if filled_width > 0:
+        chart.add(Rect(1, 1, filled_width - 2, chart_height - 2, 
+                       fillColor=PDF_THEME['primary_color'], 
+                       strokeColor=None, rx=4, ry=4))
 
-    # Text label above bar
-    chart.add(String(chart_width / 2, chart_height + 5, f"{match_pct:.1f}%", textAnchor="middle",
-                fontName="Roboto-Bold", fontSize=10, fillColor=PDF_THEME['neutral_color']))
+    # Text label above bar with better positioning
+    chart.add(String(chart_width / 2, chart_height + 8, f"{match_pct:.1f}% Match", 
+                    textAnchor="middle", fontName="Roboto-Bold", 
+                    fontSize=12, fillColor=PDF_THEME['primary_color']))
 
     elements.append(chart)
     elements.append(Spacer(1, 20))
     # Skills Breakdown Table
     elements.append(Paragraph("Skills Breakdown", header_style))
+    
+    # Format skills with better presentation
+    matched_skills_text = ", ".join(formatted_data["matched_skills"]) if formatted_data["matched_skills"] else "None"
+    missing_skills_text = ", ".join(formatted_data["missing_skills"]) if formatted_data["missing_skills"] else "None"
+    
     table_data = [
-    ["Matched Skills", Paragraph(", ".join(formatted_data["matched_skills"]) or "None", normal_style)],
-    ["Missing Skills", Paragraph(", ".join(formatted_data["missing_skills"]) or "None", normal_style)]
+        ["✅ Matched Skills", Paragraph(matched_skills_text, normal_style)],
+        ["❌ Missing Skills", Paragraph(missing_skills_text, normal_style)]
     ]
 
-    table = Table(table_data, colWidths=[150, 320])
+    table = Table(table_data, colWidths=[180, 350])
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (0, 0), PDF_THEME['background_matched']),
         ("BACKGROUND", (0, 1), (0, 1), PDF_THEME['background_missing']),
@@ -377,46 +389,73 @@ def export_to_pdf(formatted_data: dict) -> str:
         ("FONTSIZE", (0, 0), (-1, -1), PDF_THEME['font_size_normal']),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("BOX", (0, 0), (-1, -1), 0.5, PDF_THEME['neutral_color']),
-        ("INNERGRID", (0, 0), (-1, -1), 0.3, PDF_THEME['neutral_color']),
-        ("LEFTPADDING", (0, 0), (-1, -1), 12),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-        ("TOPPADDING", (0, 0), (-1, -1), 8),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("BOX", (0, 0), (-1, -1), 1, PDF_THEME['neutral_color']),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, PDF_THEME['neutral_color']),
+        ("LEFTPADDING", (0, 0), (-1, -1), 15),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 15),
+        ("TOPPADDING", (0, 0), (-1, -1), 12),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+        ("FONTNAME", (0, 0), (0, -1), "Roboto-Bold"),
     ]))
     elements.append(table)
     elements.append(Spacer(1, 20))
 
     # Actionable Recommendations
     elements.append(Paragraph("Actionable Recommendations", header_style))
+    elements.append(Spacer(1, 10))
+    
     for i, rec in enumerate(formatted_data["recommendations"], start=1):
         category = "General"
         color = PDF_THEME['neutral_color']
+        icon = "💡"
 
         rec_lower = rec.lower()
         if any(x in rec_lower for x in CATEGORY_RULES["Certification"]):
             category = "Certification"
             color = PDF_THEME['secondary_color']
+            icon = "🎓"
         elif any(x in rec_lower for x in CATEGORY_RULES["Project"]):
             category = "Project"
             color = PDF_THEME['primary_color']
+            icon = "🚀"
         elif any(x in rec_lower for x in CATEGORY_RULES["Skill"]):
             category = "Skill"
             color = PDF_THEME['warning_color']
+            icon = "⚡"
 
-        para_text = f"{i}. <font color='{color}'><b>{category}</b></font>: {rec}"
+        # Create a more visually appealing recommendation format
+        para_text = f"""
+        <para align="left" leftIndent="20">
+        <font name="Roboto-Bold" size="12" color="{color}">{icon} {category}</font><br/>
+        <font name="Roboto-Regular" size="11" color="{PDF_THEME['neutral_color']}">{rec}</font>
+        </para>
+        """
         elements.append(Paragraph(para_text, normal_style))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
-    estimated_time = formatted_data.get("estimated_time_saved_minutes", 0)
-    elements.append(Paragraph(
-        f"<b>Estimated Time Saved:</b> {estimated_time} minutes", 
-        important_style
-    ))
+    # Summary Section
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph("Summary", header_style))
+    
+    # Create a summary box
+    summary_text = f"""
+    <para align="left" leftIndent="20">
+    <font name="Roboto-Bold" size="12" color="{PDF_THEME['primary_color']}">📊 Analysis Results:</font><br/>
+    <font name="Roboto-Regular" size="11" color="{PDF_THEME['neutral_color']}">
+    • Overall Match: <b>{formatted_data['match_percentage']}%</b><br/>
+    • Skills Matched: <b>{len(formatted_data['matched_skills'])}</b> out of <b>{len(formatted_data['matched_skills']) + len(formatted_data['missing_skills'])}</b><br/>
+    • Recommendations: <b>{len(formatted_data['recommendations'])}</b> actionable items<br/>
+    • Estimated Time Saved: <b>{formatted_data.get('estimated_time_saved_minutes', 0)} minutes</b>
+    </font>
+    </para>
+    """
+    elements.append(Paragraph(summary_text, normal_style))
+    elements.append(Spacer(1, 20))
 
     # Footer
     footer = Paragraph(
-        "Generated by <b>OptiResume AI</b>, Empowering Smarter Career Growth",
+        "Generated by <b>OptiResume AI</b> • Empowering Smarter Career Growth • " + 
+        datetime.now().strftime('%Y-%m-%d'),
         footer_style
     )
     elements.append(footer)
