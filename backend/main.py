@@ -15,6 +15,7 @@ app.add_middleware(
         "http://localhost:8080", 
         "http://localhost:5173",
         "https://optiresume-aidrivenresumeoptimizationandcare-production.up.railway.app",
+        "https://opti-resume-ai-driven-resume-optimi.vercel.app",
         "*"  # Allow all origins for development
     ],
     allow_credentials=True,
